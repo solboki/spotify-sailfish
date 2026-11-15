@@ -6,7 +6,7 @@
 
 Name:       hutspot
 Summary:    Spotify controller for Sailfish OS
-Version:    0.9.0
+Version:    0.9.1
 Release:    1.fork
 Group:      Applications/Multimedia
 License:    MIT
@@ -14,7 +14,7 @@ URL:        https://github.com/sailfish-spotify/hutspot
 Source0:    %{name}-%{version}.tar.bz2
 
 Requires:   sailfishsilica-qt5 >= 0.10.9
-Requires:   mpris-qt5-qml-plugin
+Requires:   nemo-qml-plugin-notifications-qt5
 Requires:   curl
 
 BuildRequires:  pkgconfig(sailfishapp) >= 1.0.2

@@ -8,8 +8,7 @@
 import QtQuick 2.0
 import Sailfish.Silica 1.0
 
-import org.nemomobile.mpris 1.0
-import org.hildon.components 1.0
+import Amber.Mpris 1.0
 import "../Util.js" as Util
 
 Item {   
@@ -64,64 +63,22 @@ Item {
 
         _metaTitle = item.name ? item.name : ""
         _metaAlbum = albumName
-        _metaLength = item.duration_ms ? item.duration_ms * 1000 : 0
-        _metaArt = ""
+        _metaLength = item.duration_ms ? item.duration_ms : 0   // milliseconds
         _publishMetadata()
-
-        // The lock screen needs a local file for the cover: download the
-        // medium size image (300 px) with curl into the cache folder.
-        var url = images.length > 1 ? images[1].url : coverArtUrl
-        if(url.length > 0)
-            _fetchArt(url)
     }
 
     property string _metaTitle: ""
     property string _metaAlbum: ""
     property real _metaLength: 0
-    property string _metaArt: ""
 
+    // Amber.Mpris (the MPRIS module of Sailfish OS 4 and later) passes the
+    // cover to the lock screen, the older org.nemomobile.mpris does not.
     function _publishMetadata() {
-        var metadata = {}
-        metadata[Mpris.metadataToString(Mpris.Title)] = _metaTitle
-        metadata[Mpris.metadataToString(Mpris.Artist)] = artistsString
-        if(_metaAlbum.length > 0)
-            metadata[Mpris.metadataToString(Mpris.Album)] = _metaAlbum
-        if(_metaLength > 0)
-            metadata[Mpris.metadataToString(Mpris.Length)] = _metaLength
-        if(_metaArt.length > 0)
-            metadata[Mpris.metadataToString(Mpris.ArtUrl)] = _metaArt
-        mprisPlayer.metadata = metadata
-    }
-
-    // two file names used in turn, so the lock screen sees a new file
-    property int _artSlot: 0
-    property string _artPending: ""
-
-    Process {
-        id: artProcess
-        property string target: ""
-        onFinished: {
-            if(exitCode === 0 && target.length > 0) {
-                _metaArt = "file://" + target
-                _publishMetadata()
-            }
-            if(_artPending.length > 0) {
-                var next = _artPending
-                _artPending = ""
-                _fetchArt(next)
-            }
-        }
-    }
-
-    function _fetchArt(url) {
-        if(artProcess.state !== Processes.NotRunning) {
-            _artPending = url
-            return
-        }
-        _artSlot = 1 - _artSlot
-        artProcess.target = StandardPaths.cache + "/cover-" + _artSlot + ".jpg"
-        artProcess.start("/usr/bin/curl", ["-s", "-f", "-L", "--create-dirs",
-                                          "-o", artProcess.target, url])
+        mprisPlayer.metaData.title = _metaTitle
+        mprisPlayer.metaData.contributingArtist = artistsString
+        mprisPlayer.metaData.albumTitle = _metaAlbum
+        mprisPlayer.metaData.duration = _metaLength
+        mprisPlayer.metaData.artUrl = coverArtUrl
     }
 
     property string artistsString: ""
