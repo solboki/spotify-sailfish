@@ -327,6 +327,9 @@ ApplicationWindow {
         case Util.HutspotPage.GenreMoodPlaylist:
             pageUrl = "pages/GenreMoodPlaylist.qml"
             break
+        case Util.HutspotPage.Show:
+            pageUrl = "pages/Show.qml"
+            break
         }
 
         // if the pushPage is called from the Playing page and the Playing page

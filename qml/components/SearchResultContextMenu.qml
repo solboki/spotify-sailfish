@@ -22,7 +22,13 @@ ContextMenu {
             case Util.SpotifyItemType.Album:
             case Util.SpotifyItemType.Artist:
             case Util.SpotifyItemType.Playlist:
+            case Util.SpotifyItemType.Show:
+            case Util.SpotifyItemType.Audiobook:
                 app.controller.playContext(item)
+                break;
+            case Util.SpotifyItemType.Episode:
+            case Util.SpotifyItemType.Chapter:
+                app.controller.playTrack(item)
                 break;
             case Util.SpotifyItemType.Track:
                 switch(contextType) {
@@ -45,9 +51,15 @@ ContextMenu {
     MenuItem {
         text: qsTr("View")
         enabled: type !== Util.SpotifyItemType.Track
+                 && type !== Util.SpotifyItemType.Episode
+                 && type !== Util.SpotifyItemType.Chapter
         visible: enabled
         onClicked: {
             switch(type) {
+            case Util.SpotifyItemType.Show:
+            case Util.SpotifyItemType.Audiobook:
+                app.pushPage(Util.HutspotPage.Show, {show: item})
+                break
             case Util.SpotifyItemType.Album:
                 app.pushPage(Util.HutspotPage.Album, {album: item})
                 break

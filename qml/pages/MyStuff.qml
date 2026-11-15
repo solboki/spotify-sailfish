@@ -13,6 +13,7 @@ import "../components"
 import "../Spotify.js" as Spotify
 import "../Util.js" as Util
 import "../GenreCache.js" as GenreCache
+import "../LibraryCache.js" as LibraryCache
 
 Page {
     id: myStuffPage
@@ -63,7 +64,11 @@ Page {
             currentPage: "MyStuffPage"
             MenuItem {
                 text: qsTr("Reload")
-                onClicked: refresh()
+                onClicked: {
+                    // a manual reload always downloads the albums again
+                    LibraryCache.invalidate()
+                    refresh()
+                }
             }
         }
 
@@ -93,6 +98,8 @@ Page {
                     MenuItem { text: qsTr("Recently Played") }
                     MenuItem { text: qsTr("Saved Tracks") }
                     MenuItem { text: qsTr("Followed Artists") }
+                    MenuItem { text: qsTr("Podcasts") }
+                    MenuItem { text: qsTr("Audiobooks") }
                 }
                 onCurrentIndexChanged: {
                     if(currentIndex >= 0 && currentIndex !== _itemClass)
@@ -181,6 +188,10 @@ Page {
                 case 2:
                     app.pushPage(Util.HutspotPage.Playlist, {playlist: item})
                     break;
+                case Util.SpotifyItemType.Show:
+                case Util.SpotifyItemType.Audiobook:
+                    app.pushPage(Util.HutspotPage.Show, {show: item})
+                    break;
                 case 3:
                     app.pushPage(Util.HutspotPage.Album, {album: item.album})
                     break;
@@ -245,7 +256,7 @@ Page {
     function nextItemClass() {
         var i = _itemClass
         i++
-        if(i > 4)
+        if(i > 6)
             i = 0
         _itemClass = i
         app.current_item_classes.myStuff = i
@@ -308,6 +319,11 @@ Page {
     function loadAllAlbums() {
         if(_loadingAll)
             return
+        var cached = LibraryCache.savedAlbums()
+        if(cached) {
+            _afterAlbumsLoaded(cached)
+            return
+        }
         _loadingAll = true
         showBusy = true
         busyText = qsTr("Loading albums")
@@ -324,22 +340,29 @@ Page {
                         return
                     }
                 }
-                if(albumSort.value === 2) {
-                    var ids = []
-                    for(var j=0;j<all.length;j++)
-                        if(all[j].album.artists && all[j].album.artists.length > 0)
-                            ids.push(all[j].album.artists[0].id)
-                    busyText = qsTr("Loading genres")
-                    GenreCache.fetchMissing(ids, function(done, total) {
-                        busyText = qsTr("Loading genres") + " " + done + "/" + total
-                    }, function() {
-                        fillAllAlbums(all)
-                    })
-                } else
-                    fillAllAlbums(all)
+                _loadingAll = false
+                _afterAlbumsLoaded(LibraryCache.setSavedAlbums(all))
             })
         }
         page(0)
+    }
+
+    // Genres are only needed when sorting by genre (and are cached too)
+    function _afterAlbumsLoaded(all) {
+        if(albumSort.value === 2) {
+            var ids = []
+            for(var j=0;j<all.length;j++)
+                if(all[j].album.artists && all[j].album.artists.length > 0)
+                    ids.push(all[j].album.artists[0].id)
+            _loadingAll = true
+            showBusy = true
+            GenreCache.fetchMissing(ids, function(done, total) {
+                busyText = qsTr("Loading genres") + " " + done + "/" + total
+            }, function() {
+                fillAllAlbums(all)
+            })
+        } else
+            fillAllAlbums(all)
     }
 
     function fillAllAlbums(all) {
@@ -415,7 +438,7 @@ Page {
         _loading = true
 
         var i, options;
-        if(_itemClass === 0 && albumSort.value !== 0) {
+        if(_itemClass === 0) {
             _loading = false
             if(searchModel.count === 0)
                 loadAllAlbums()
@@ -499,6 +522,36 @@ Page {
                 _loading = false
             })
             break
+        case 5: // podcasts
+        case 6: // audiobooks
+            var isShows = _itemClass === 5
+            var cb = function(error, data) {
+                if(data && data.items) {
+                    cursorHelper.offset = data.offset
+                    cursorHelper.total = data.total
+                    for(var k=0;k<data.items.length;k++) {
+                        var it = data.items[k]
+                        if(!it)
+                            continue
+                        var obj = isShows ? it.show : (it.audiobook ? it.audiobook : it)
+                        if(!obj)
+                            continue
+                        addData({type: isShows ? Util.SpotifyItemType.Show : Util.SpotifyItemType.Audiobook,
+                                 stype: isShows ? Util.SpotifyItemType.Show : Util.SpotifyItemType.Audiobook,
+                                 name: obj.name,
+                                 item: obj,
+                                 following: true, saved: true})
+                    }
+                } else if(error)
+                    app.showErrorMessage(error, qsTr("Cannot load the library"))
+                _loading = false
+            }
+            options = {offset: searchModel.count, limit: cursorHelper.limit, market: "from_token"}
+            if(isShows)
+                Spotify.getMySavedShows(options, cb)
+            else
+                Spotify.getMySavedAudiobooks(options, cb)
+            break
         }
     }
 
@@ -514,6 +567,14 @@ Page {
     Connections {
         target: app
         onHasValidTokenChanged: refresh()
+        onFavoriteEvent: {
+            // an album was saved or removed: the cached list is outdated
+            if(event.type === Util.SpotifyItemType.Album) {
+                LibraryCache.invalidate()
+                if(_itemClass === 0)
+                    refresh()
+            }
+        }
     }
 
     Component.onCompleted: {

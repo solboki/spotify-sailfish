@@ -71,6 +71,9 @@ Page {
                     MenuItem { text: qsTr("Artists") }
                     MenuItem { text: qsTr("Playlists") }
                     MenuItem { text: qsTr("Tracks") }
+                    MenuItem { text: qsTr("Podcasts") }
+                    MenuItem { text: qsTr("Episodes") }
+                    MenuItem { text: qsTr("Audiobooks") }
                 }
                 onCurrentIndexChanged: {
                     if(currentIndex >= 0 && currentIndex !== _itemClass) {
@@ -179,6 +182,13 @@ Page {
                 case 2:
                     app.pushPage(Util.HutspotPage.Playlist, {playlist: item})
                     break;
+                case Util.SpotifyItemType.Show:
+                case Util.SpotifyItemType.Audiobook:
+                    app.pushPage(Util.HutspotPage.Show, {show: item})
+                    break;
+                case Util.SpotifyItemType.Episode:
+                    app.controller.playTrack(item)
+                    break;
                 case 3:
                     app.pushPage(Util.HutspotPage.Album, {album: item.album})
                     break;
@@ -216,7 +226,7 @@ Page {
     function nextItemClass() {
         var i = _itemClass
         i++
-        if(i > 3)
+        if(i > 6)
             i = 0
         _itemClass = i
         app.current_item_classes.search = i
@@ -254,9 +264,16 @@ Page {
             types.push('playlist')
         else if(_itemClass === 3)
             types.push('track')
+        else if(_itemClass === 4)
+            types.push('show')
+        else if(_itemClass === 5)
+            types.push('episode')
+        else if(_itemClass === 6)
+            types.push('audiobook')
 
         var options = {offset: searchModel.count, limit: cursorHelper.limit}
-        if(app.query_for_market.value)
+        // podcasts and audiobooks are only returned for a given market
+        if(app.query_for_market.value || _itemClass >= 4)
             options.market = "from_token"
         Spotify.search(Util.processSearchString(searchString), types, options, function(error, data) {
             if(data) {
@@ -300,6 +317,28 @@ Page {
                         }
                         cursorHelper.offset = data.playlists.offset
                         cursorHelper.total = data.playlists.total
+                    }
+
+                    // podcasts, episodes, audiobooks (lists can contain null entries)
+                    var others = [['shows', Util.SpotifyItemType.Show],
+                                  ['episodes', Util.SpotifyItemType.Episode],
+                                  ['audiobooks', Util.SpotifyItemType.Audiobook]]
+                    for(var o=0;o<others.length;o++) {
+                        var key = others[o][0]
+                        if(!data.hasOwnProperty(key))
+                            continue
+                        for(i=0;i<data[key].items.length;i++) {
+                            var it = data[key].items[i]
+                            if(!it)
+                                continue
+                            searchModel.append({type: others[o][1],
+                                                name: it.name,
+                                                item: it,
+                                                following: false,
+                                                saved: false})
+                        }
+                        cursorHelper.offset = data[key].offset
+                        cursorHelper.total = data[key].total
                     }
 
                     // tracks

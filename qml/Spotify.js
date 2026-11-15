@@ -1661,7 +1661,11 @@ var ItemType = {
     Album: 0,
     Artist: 1,
     Playlist: 2,
-    Track: 3
+    Track: 3,
+    Show: 4,
+    Episode: 5,
+    Audiobook: 6,
+    Chapter: 7
 }
 
 //
@@ -1923,3 +1927,31 @@ function getAudioFeaturesForTrack() { _removedEndpoint('audio features').apply(n
 function getAudioFeaturesForTracks() { _removedEndpoint('audio features').apply(null, arguments); }
 function getAudioAnalysisForTrack() { _removedEndpoint('audio analysis').apply(null, arguments); }
 function getUser() { _removedEndpoint('user profile').apply(null, arguments); }
+
+
+//
+// Podcasts and audiobooks
+//
+function getMySavedShows(options, callback) {
+  return _checkParamsAndPerformRequest({ url: _baseUri + '/me/shows' }, options, callback);
+}
+function getMySavedAudiobooks(options, callback) {
+  return _checkParamsAndPerformRequest({ url: _baseUri + '/me/audiobooks' }, options, callback);
+}
+function getShow(showId, options, callback) {
+  return _checkParamsAndPerformRequest({ url: _baseUri + '/shows/' + showId }, options, callback);
+}
+function getShowEpisodes(showId, options, callback) {
+  return _checkParamsAndPerformRequest({ url: _baseUri + '/shows/' + showId + '/episodes' }, options, callback);
+}
+function getAudiobook(audiobookId, options, callback) {
+  return _checkParamsAndPerformRequest({ url: _baseUri + '/audiobooks/' + audiobookId }, options, callback);
+}
+function getAudiobookChapters(audiobookId, options, callback) {
+  return _checkParamsAndPerformRequest({ url: _baseUri + '/audiobooks/' + audiobookId + '/chapters' }, options, callback);
+}
+
+// Generic library save/remove/contains with Spotify URIs
+function saveToLibrary(uris, callback) { _libraryRequest('PUT', '/me/library', uris, callback); }
+function removeFromLibrary(uris, callback) { _libraryRequest('DELETE', '/me/library', uris, callback); }
+function libraryContains(uris, callback) { _libraryRequest('GET', '/me/library/contains', uris, callback); }

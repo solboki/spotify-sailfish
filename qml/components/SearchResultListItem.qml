@@ -114,6 +114,13 @@ Row {
             if(dataModel.item.images)
                 images = dataModel.item.images
             break;
+        case Util.SpotifyItemType.Show:
+        case Util.SpotifyItemType.Episode:
+        case Util.SpotifyItemType.Audiobook:
+        case Util.SpotifyItemType.Chapter:
+            if(dataModel.item.images)
+                images = dataModel.item.images
+            break
         case Util.SpotifyItemType.Track:
             if(dataModel.item.images)
                 images = dataModel.item.images
@@ -159,6 +166,20 @@ Row {
                 sb.append(dataModel.item.owner.id)
             }
             break
+        case Util.SpotifyItemType.Show:
+            sb.append(qsTr("Podcast"))
+            break
+        case Util.SpotifyItemType.Audiobook:
+            if(dataModel.item.authors)
+                sb.append(Util.createItemsString(dataModel.item.authors, ""))
+            if(dataModel.item.narrators && dataModel.item.narrators.length > 0)
+                sb.append(qsTr("read by") + " " + Util.createItemsString(dataModel.item.narrators, ""))
+            break
+        case Util.SpotifyItemType.Episode:
+        case Util.SpotifyItemType.Chapter:
+            if(dataModel.item.release_date)
+                sb.append(dataModel.item.release_date)
+            break
         case Util.SpotifyItemType.Track:
             if(dataModel.item.item)
                 items = dataModel.item.artists
@@ -192,6 +213,25 @@ Row {
             break
         case Util.SpotifyItemType.Playlist:
             sb.append(getNumTracksText(dataModel.item.tracks.total))
+            break
+        case Util.SpotifyItemType.Show:
+            if(dataModel.item.total_episodes)
+                sb.append(dataModel.item.total_episodes + " " + qsTr("episodes"))
+            break
+        case Util.SpotifyItemType.Audiobook:
+            if(dataModel.item.total_chapters)
+                sb.append(dataModel.item.total_chapters + " " + qsTr("chapters"))
+            break
+        case Util.SpotifyItemType.Episode:
+        case Util.SpotifyItemType.Chapter:
+            if(dataModel.item.duration_ms)
+                sb.append(Util.getDurationString(dataModel.item.duration_ms))
+            if(dataModel.item.resume_point) {
+                if(dataModel.item.resume_point.fully_played)
+                    sb.append(qsTr("played"))
+                else if(dataModel.item.resume_point.resume_position_ms > 0)
+                    sb.append(qsTr("in progress"))
+            }
             break
         case Util.SpotifyItemType.Track:
             if(dataModel.item.duration_ms)

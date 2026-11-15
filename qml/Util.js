@@ -422,7 +422,11 @@ var SpotifyItemType = {
     Album: 0,
     Artist: 1,
     Playlist: 2,
-    Track: 3
+    Track: 3,
+    Show: 4,       // podcast
+    Episode: 5,    // podcast episode
+    Audiobook: 6,
+    Chapter: 7     // audiobook chapter
 }
 
 var HutspotMenuItem = {
@@ -444,7 +448,8 @@ var HutspotPage = {
     Album: 0,
     Artist: 1,
     Playlist: 2,
-    GenreMoodPlaylist: 3
+    GenreMoodPlaylist: 3,
+    Show: 4        // podcast or audiobook
 }
 
 var PlaylistEventType = {
