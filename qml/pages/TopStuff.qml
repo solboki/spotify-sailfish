@@ -93,7 +93,8 @@ Page {
                     app.pushPage(Util.HutspotPage.Artist, {currentArtist: item})
                     break;
                 case 3:
-                    app.pushPage(Util.HutspotPage.Album, {album: item.album})
+                    // tap on a track plays it, tap on its cover opens the album
+                    app.controller.playTrack(item)
                     break;
                 }
             }

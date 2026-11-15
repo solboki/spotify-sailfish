@@ -104,7 +104,7 @@ Page {
                     app.pushPage(Util.HutspotPage.Playlist, {playlist: item})
                     break
                 case Util.SpotifyItemType.Track:
-                    app.pushPage(Util.HutspotPage.Album, {album: item.album})
+                    app.controller.playTrack(item)
                     break
                 }
             }

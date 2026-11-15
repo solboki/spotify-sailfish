@@ -485,28 +485,28 @@
         <translation>Ne plus suivre</translation>
     </message>
     <message>
-        <location filename="../qml/pages/MyStuff.qml" line="206" />
+        <location filename="../qml/pages/MyStuff.qml" line="207" />
         <source>Nothing found</source>
         <translation>Aucun résultat</translation>
     </message>
     <message>
-        <location filename="../qml/pages/MyStuff.qml" line="303" />
+        <location filename="../qml/pages/MyStuff.qml" line="304" />
         <source>Unknown genre</source>
         <translation>Genre inconnu</translation>
     </message>
     <message>
-        <location filename="../qml/pages/MyStuff.qml" line="329" />
-        <location filename="../qml/pages/MyStuff.qml" line="337" />
+        <location filename="../qml/pages/MyStuff.qml" line="330" />
+        <location filename="../qml/pages/MyStuff.qml" line="338" />
         <source>Loading albums</source>
         <translation>Chargement des albums</translation>
     </message>
     <message>
-        <location filename="../qml/pages/MyStuff.qml" line="360" />
+        <location filename="../qml/pages/MyStuff.qml" line="361" />
         <source>Loading genres</source>
         <translation>Chargement des genres</translation>
     </message>
     <message>
-        <location filename="../qml/pages/MyStuff.qml" line="546" />
+        <location filename="../qml/pages/MyStuff.qml" line="547" />
         <source>Cannot load the library</source>
         <translation>Impossible de charger la bibliothèque</translation>
     </message>
@@ -715,12 +715,11 @@
 <context>
     <name>PlaybackState</name>
     <message>
-        <location filename="../qml/components/PlaybackState.qml" line="19" />
         <source>Simple Spotify Controller</source>
-        <translation>Télécommande Spotify simple</translation>
+        <translation type="vanished">Télécommande Spotify simple</translation>
     </message>
     <message>
-        <location filename="../qml/components/PlaybackState.qml" line="37" />
+        <location filename="../qml/components/PlaybackState.qml" line="62" />
         <source>no artist known</source>
         <translation>artiste inconnu</translation>
     </message>
@@ -805,12 +804,12 @@
         <translation>Playlist</translation>
     </message>
     <message>
-        <location filename="../qml/pages/Playlist.qml" line="127" />
+        <location filename="../qml/pages/Playlist.qml" line="126" />
         <source>Remove from Playlist</source>
         <translation>Retirer de la playlist</translation>
     </message>
     <message>
-        <location filename="../qml/pages/Playlist.qml" line="139" />
+        <location filename="../qml/pages/Playlist.qml" line="138" />
         <source>Add to another Playlist</source>
         <translation>Ajouter à une autre playlist</translation>
     </message>
@@ -1092,12 +1091,12 @@
         <translation>Confirmez-vous l'effacement de l'historique de recherche ?</translation>
     </message>
     <message>
-        <location filename="../qml/pages/Search.qml" line="203" />
+        <location filename="../qml/pages/Search.qml" line="204" />
         <source>Nothing found</source>
         <translation>Aucun résultat</translation>
     </message>
     <message>
-        <location filename="../qml/pages/Search.qml" line="358" />
+        <location filename="../qml/pages/Search.qml" line="359" />
         <source>Search Failed</source>
         <translation>Échec de la recherche</translation>
     </message>
@@ -1110,22 +1109,32 @@
         <translation>Lire</translation>
     </message>
     <message>
-        <location filename="../qml/components/SearchResultContextMenu.qml" line="52" />
+        <location filename="../qml/components/SearchResultContextMenu.qml" line="55" />
+        <source>Remove from Library</source>
+        <translation>Retirer de la bibliothèque</translation>
+    </message>
+    <message>
+        <location filename="../qml/components/SearchResultContextMenu.qml" line="55" />
+        <source>Save to Library</source>
+        <translation>Ajouter à la bibliothèque</translation>
+    </message>
+    <message>
+        <location filename="../qml/components/SearchResultContextMenu.qml" line="59" />
         <source>View</source>
         <translation>Afficher</translation>
     </message>
     <message>
-        <location filename="../qml/components/SearchResultContextMenu.qml" line="78" />
+        <location filename="../qml/components/SearchResultContextMenu.qml" line="85" />
         <source>View Album</source>
         <translation>Voir l'album</translation>
     </message>
     <message>
-        <location filename="../qml/components/SearchResultContextMenu.qml" line="85" />
+        <location filename="../qml/components/SearchResultContextMenu.qml" line="92" />
         <source>Add to Playlist</source>
         <translation>Ajouter à une playlist</translation>
     </message>
     <message>
-        <location filename="../qml/components/SearchResultContextMenu.qml" line="91" />
+        <location filename="../qml/components/SearchResultContextMenu.qml" line="98" />
         <source>Use as Seeds for Recommendations</source>
         <translation>Utiliser pour les recommandations</translation>
     </message>
@@ -1133,78 +1142,78 @@
 <context>
     <name>SearchResultListItem</name>
     <message>
-        <location filename="../qml/components/SearchResultListItem.qml" line="52" />
+        <location filename="../qml/components/SearchResultListItem.qml" line="60" />
         <source>No Name</source>
         <translation>Sans nom</translation>
     </message>
     <message>
-        <location filename="../qml/components/SearchResultListItem.qml" line="153" />
-        <location filename="../qml/components/SearchResultListItem.qml" line="188" />
+        <location filename="../qml/components/SearchResultListItem.qml" line="163" />
+        <location filename="../qml/components/SearchResultListItem.qml" line="198" />
         <source>no artist known</source>
         <translation>artiste inconnu</translation>
     </message>
     <message>
-        <location filename="../qml/components/SearchResultListItem.qml" line="158" />
+        <location filename="../qml/components/SearchResultListItem.qml" line="168" />
         <source>no genre known</source>
         <translation>genre inconnu</translation>
     </message>
     <message>
-        <location filename="../qml/components/SearchResultListItem.qml" line="164" />
+        <location filename="../qml/components/SearchResultListItem.qml" line="174" />
         <source>Id</source>
         <translation>Identifiant</translation>
     </message>
     <message>
-        <location filename="../qml/components/SearchResultListItem.qml" line="170" />
+        <location filename="../qml/components/SearchResultListItem.qml" line="180" />
         <source>Podcast</source>
         <translation>Podcast</translation>
     </message>
     <message>
-        <location filename="../qml/components/SearchResultListItem.qml" line="176" />
+        <location filename="../qml/components/SearchResultListItem.qml" line="186" />
         <source>read by</source>
         <translation>lu par</translation>
     </message>
     <message>
-        <location filename="../qml/components/SearchResultListItem.qml" line="191" />
+        <location filename="../qml/components/SearchResultListItem.qml" line="201" />
         <source>album not specified</source>
         <translation>album non précisé</translation>
     </message>
     <message>
-        <location filename="../qml/components/SearchResultListItem.qml" line="212" />
+        <location filename="../qml/components/SearchResultListItem.qml" line="222" />
         <source>followers</source>
         <translation>abonnés</translation>
     </message>
     <message>
-        <location filename="../qml/components/SearchResultListItem.qml" line="219" />
+        <location filename="../qml/components/SearchResultListItem.qml" line="229" />
         <source>episodes</source>
         <translation>épisodes</translation>
     </message>
     <message>
-        <location filename="../qml/components/SearchResultListItem.qml" line="223" />
+        <location filename="../qml/components/SearchResultListItem.qml" line="233" />
         <source>chapters</source>
         <translation>chapitres</translation>
     </message>
     <message>
-        <location filename="../qml/components/SearchResultListItem.qml" line="231" />
+        <location filename="../qml/components/SearchResultListItem.qml" line="241" />
         <source>played</source>
         <translation>écouté</translation>
     </message>
     <message>
-        <location filename="../qml/components/SearchResultListItem.qml" line="233" />
+        <location filename="../qml/components/SearchResultListItem.qml" line="243" />
         <source>in progress</source>
         <translation>en cours</translation>
     </message>
     <message>
-        <location filename="../qml/components/SearchResultListItem.qml" line="240" />
+        <location filename="../qml/components/SearchResultListItem.qml" line="250" />
         <source>played at </source>
         <translation>écouté le </translation>
     </message>
     <message>
-        <location filename="../qml/components/SearchResultListItem.qml" line="248" />
+        <location filename="../qml/components/SearchResultListItem.qml" line="258" />
         <source>track</source>
         <translation>titre</translation>
     </message>
     <message>
-        <location filename="../qml/components/SearchResultListItem.qml" line="248" />
+        <location filename="../qml/components/SearchResultListItem.qml" line="258" />
         <source>tracks</source>
         <translation>titres</translation>
     </message>
@@ -1522,7 +1531,7 @@
         <translation>Artistes préférés</translation>
     </message>
     <message>
-        <location filename="../qml/pages/TopStuff.qml" line="106" />
+        <location filename="../qml/pages/TopStuff.qml" line="107" />
         <source>Nothing found</source>
         <translation>Aucun résultat</translation>
     </message>
@@ -1573,17 +1582,37 @@
         <translation>Choisir une playlist</translation>
     </message>
     <message>
-        <location filename="../qml/hutspot.qml" line="1021" />
+        <location filename="../qml/hutspot.qml" line="977" />
+        <source>Failed</source>
+        <translation>Échec</translation>
+    </message>
+    <message>
+        <location filename="../qml/hutspot.qml" line="985" />
+        <source>Added to your library</source>
+        <translation>Ajouté à votre bibliothèque</translation>
+    </message>
+    <message>
+        <location filename="../qml/hutspot.qml" line="986" />
+        <source>Removed from your library</source>
+        <translation>Retiré de votre bibliothèque</translation>
+    </message>
+    <message>
+        <location filename="../qml/hutspot.qml" line="994" />
+        <source>Remove from your library?</source>
+        <translation>Retirer de votre bibliothèque ?</translation>
+    </message>
+    <message>
+        <location filename="../qml/hutspot.qml" line="1055" />
         <source>View an Artist</source>
         <translation>Voir un artiste</translation>
     </message>
     <message>
-        <location filename="../qml/hutspot.qml" line="1777" />
+        <location filename="../qml/hutspot.qml" line="1811" />
         <source>Lost Network Connection. Quit?</source>
         <translation>Connexion réseau perdue. Quitter ?</translation>
     </message>
     <message>
-        <location filename="../qml/hutspot.qml" line="1783" />
+        <location filename="../qml/hutspot.qml" line="1817" />
         <source>There seems to be no network connection. Quit?</source>
         <translation>Aucune connexion réseau. Quitter ?</translation>
     </message>

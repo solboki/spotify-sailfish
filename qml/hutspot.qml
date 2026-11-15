@@ -962,6 +962,40 @@ ApplicationWindow {
             _unSaveTrack(track, callback)
     }
 
+    // Add an item (track, album, artist, playlist, podcast, episode,
+    // audiobook) to the library or remove it. 'm' is a list model entry
+    // with the roles type, item, saved and following.
+    function toggleInLibrary(m) {
+        var it = m.item
+        var type = m.type
+        var usesFollowing = (type === Util.SpotifyItemType.Artist
+                             || type === Util.SpotifyItemType.Playlist)
+        var isIn = usesFollowing ? m.following : m.saved
+        var doIt = function() {
+            var cb = function(error, data) {
+                if(error) {
+                    showErrorMessage(error, qsTr("Failed"))
+                    return
+                }
+                if(usesFollowing)
+                    m.following = !isIn
+                else
+                    m.saved = !isIn
+                favoriteEvent(new Util.FavoriteEvent(type, it.id, it.uri, !isIn))
+                msgBox.showMessage(!isIn ? qsTr("Added to your library")
+                                         : qsTr("Removed from your library"), 1500)
+            }
+            if(isIn)
+                Spotify.removeFromLibrary([it.uri], cb)
+            else
+                Spotify.saveToLibrary([it.uri], cb)
+        }
+        if(isIn && confirm_un_follow_save.value)
+            showConfirmDialog(qsTr("Remove from your library?") + "<br><br><b>" + it.name + "</b>", doIt)
+        else
+            doIt()
+    }
+
     function toggleSavedTrack(model) {
         if(model.saved)
             unSaveTrack(model.item, function(error,data) {

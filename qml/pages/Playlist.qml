@@ -117,7 +117,6 @@ Page {
                 id: searchResultListItem
                 dataModel: model
                 contextType: Util.SpotifyItemType.Playlist
-                onToggleFavorite: app.toggleSavedTrack(model)
             }
 
             menu: SearchResultContextMenu {
@@ -141,7 +140,8 @@ Page {
                 }
             }
 
-            onClicked: app.pushPage(Util.HutspotPage.Album, {album: item.album})
+            // tap on a track plays it in the playlist, tap on its cover opens the album
+            onClicked: app.controller.playTrackInContext(item, playlist, index)
         }
 
         VerticalScrollDecorator {}

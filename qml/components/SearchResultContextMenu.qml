@@ -49,6 +49,13 @@ ContextMenu {
         visible: enabled
     }
     MenuItem {
+        readonly property bool inLibrary: (type === Util.SpotifyItemType.Artist
+                                           || type === Util.SpotifyItemType.Playlist)
+                                          ? following : saved
+        text: inLibrary ? qsTr("Remove from Library") : qsTr("Save to Library")
+        onClicked: app.toggleInLibrary(model)
+    }
+    MenuItem {
         text: qsTr("View")
         enabled: type !== Util.SpotifyItemType.Track
                  && type !== Util.SpotifyItemType.Episode

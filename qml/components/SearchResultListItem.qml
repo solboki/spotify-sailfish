@@ -37,6 +37,14 @@ Row {
         asynchronous: true
         fillMode: Image.PreserveAspectFit
         source: getImageURL(dataModel)
+        // for a track, the cover opens its album
+        MouseArea {
+            anchors.fill: parent
+            enabled: dataModel.type === Util.SpotifyItemType.Track
+                     && dataModel.item.album !== undefined
+                     && contextType !== Util.SpotifyItemType.Album
+            onClicked: app.pushPage(Util.HutspotPage.Album, {album: dataModel.item.album})
+        }
     }
 
     Column {
@@ -99,8 +107,10 @@ Row {
                                       ? "image://theme/icon-m-favorite?" + Theme.highlightColor
                                       : "image://theme/icon-m-favorite"
                 MouseArea {
+                     // a bit larger than the star to be easy to hit
                      anchors.fill: parent
-                     onClicked: toggleFavorite()
+                     anchors.margins: -Theme.paddingMedium
+                     onClicked: app.toggleInLibrary(dataModel)
                 }
             }
         }
