@@ -27,10 +27,7 @@ Dialog {
                               name: qsTr("Playing"),
                               icon: "image://theme/icon-m-music"
                              })
-        menuModel.append({hutspotMenuItem: Util.HutspotMenuItem.ShowNewReleasePage,
-                          name: qsTr("New & Featured"),
-                          icon: "image://theme/icon-m-health"
-                         })
+        // ShowNewReleasePage: removed, Spotify no longer offers it (Web API, Feb. 2026)
         menuModel.append({hutspotMenuItem: Util.HutspotMenuItem.ShowMyStuffPage,
                           name: qsTr("My Stuff"),
                           icon: "image://theme/icon-m-person" // -events
@@ -39,18 +36,12 @@ Dialog {
                           name: qsTr("Top Stuff"),
                           icon: "image://theme/icon-m-like"
                          })
-        menuModel.append({hutspotMenuItem: Util.HutspotMenuItem.ShowGenreMoodPage,
-                          name: qsTr("Genre & Mood"),
-                          icon: "image://theme/icon-m-ambience"
-                         })
+        // ShowGenreMoodPage: removed, Spotify no longer offers it (Web API, Feb. 2026)
         menuModel.append({hutspotMenuItem: Util.HutspotMenuItem.ShowHistoryPage,
                           name: qsTr("History"),
                           icon: "image://theme/icon-m-backup"
                          })
-        menuModel.append({hutspotMenuItem: Util.HutspotMenuItem.ShowRecommendedPage,
-                          name: qsTr("Recommended"),
-                          icon: "image://theme/icon-m-acknowledge"
-                         })
+        // ShowRecommendedPage: removed, Spotify no longer offers it (Web API, Feb. 2026)
         menuModel.append({hutspotMenuItem: Util.HutspotMenuItem.ShowSearchPage,
                           name: qsTr("Search"),
                           icon: "image://theme/icon-m-search"

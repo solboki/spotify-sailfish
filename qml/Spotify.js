@@ -87,8 +87,11 @@ function _performRequest(requestData, callback) {
         }
 
         if (req.status >= 200 && req.status < 300) {
+          _normalize2026(data, 0);
           callback(null, data);
         } else {
+          if (!data || typeof data !== 'object')
+            data = { error: { status: req.status, message: req.statusText || ('HTTP ' + req.status) } };
           callback(data.error);
           if(data.error)
               console.error("_performRequest: " + data.error.status + ": " + data.error.message);
@@ -1660,3 +1663,263 @@ var ItemType = {
     Playlist: 2,
     Track: 3
 }
+
+//
+// ---------------------------------------------------------------------------
+// Web API changes of February/March 2026 (Development Mode apps)
+// https://developer.spotify.com/documentation/web-api/references/changes/february-2026
+//
+// The functions below are declared after the original ones and therefore
+// replace them. They keep the original signatures so the QML pages need no
+// changes.
+// ---------------------------------------------------------------------------
+//
+
+// Playlist objects: 'tracks' was renamed 'items' and playlist entries
+// 'track' was renamed 'item'. Restore the old names so the existing QML keeps
+// working. Also give back an empty 'tracks' for playlists whose content is no
+// longer returned (playlists the user does not own).
+function _normalize2026(obj, depth) {
+  if (!obj || typeof obj !== 'object' || depth > 6)
+    return;
+  if (Array.isArray(obj)) {
+    for (var i = 0; i < obj.length; i++)
+      _normalize2026(obj[i], depth + 1);
+    return;
+  }
+  if (obj.type === 'playlist') {
+    if (obj.tracks === undefined) {
+      if (obj.items !== undefined && !Array.isArray(obj.items))
+        obj.tracks = obj.items;
+      else
+        obj.tracks = { total: 0, items: [], unavailable: true };
+    }
+  }
+  if (obj.item !== undefined && obj.track === undefined
+      && obj.item && typeof obj.item === 'object' && obj.item.type)
+    obj.track = obj.item;
+  for (var key in obj) {
+    if (key === 'track' || key === 'item')
+      continue; // already handled, avoid double work
+    var v = obj[key];
+    if (v && typeof v === 'object')
+      _normalize2026(v, depth + 1);
+  }
+}
+
+function _toUris(kind, ids) {
+  return ids.map(function(id) {
+    return (typeof id === 'string' && id.indexOf('spotify:') === 0) ? id : 'spotify:' + kind + ':' + id;
+  });
+}
+
+// The library endpoints accept at most 40 URIs: split and merge.
+function _libraryRequest(type, path, uris, callback) {
+  var chunks = [];
+  for (var i = 0; i < uris.length; i += 40)
+    chunks.push(uris.slice(i, i + 40));
+  if (chunks.length === 0) {
+    if (callback) callback(null, []);
+    return;
+  }
+  var results = [];
+  var next = function(index) {
+    if (index >= chunks.length) {
+      if (callback) callback(null, results);
+      return;
+    }
+    _performRequest({
+      url: _baseUri + path,
+      type: type,
+      params: { uris: chunks[index].join(',') }
+    }, function(error, data) {
+      if (error) {
+        if (callback) callback(error, null);
+        return;
+      }
+      if (Array.isArray(data))
+        results = results.concat(data);
+      next(index + 1);
+    });
+  };
+  next(0);
+}
+
+function _librarySave(kind, ids, callback) { _libraryRequest('PUT', '/me/library', _toUris(kind, ids), callback); }
+function _libraryRemove(kind, ids, callback) { _libraryRequest('DELETE', '/me/library', _toUris(kind, ids), callback); }
+function _libraryContains(kind, ids, callback) { _libraryRequest('GET', '/me/library/contains', _toUris(kind, ids), callback); }
+
+function _cb(options, callback) { return (typeof options === 'function') ? options : callback; }
+
+// Tracks
+function addToMySavedTracks(trackIds, options, callback) { _librarySave('track', trackIds, _cb(options, callback)); }
+function removeFromMySavedTracks(trackIds, options, callback) { _libraryRemove('track', trackIds, _cb(options, callback)); }
+function containsMySavedTracks(trackIds, options, callback) { _libraryContains('track', trackIds, _cb(options, callback)); }
+
+// Albums
+function addToMySavedAlbums(albumIds, options, callback) { _librarySave('album', albumIds, _cb(options, callback)); }
+function removeFromMySavedAlbums(albumIds, options, callback) { _libraryRemove('album', albumIds, _cb(options, callback)); }
+function containsMySavedAlbums(albumIds, options, callback) { _libraryContains('album', albumIds, _cb(options, callback)); }
+
+// Artists and users
+function followArtists(artistIds, callback) { _librarySave('artist', artistIds, callback); }
+function unfollowArtists(artistIds, callback) { _libraryRemove('artist', artistIds, callback); }
+function isFollowingArtists(artistIds, callback) { _libraryContains('artist', artistIds, callback); }
+function followUsers(userIds, callback) { _librarySave('user', userIds, callback); }
+function unfollowUsers(userIds, callback) { _libraryRemove('user', userIds, callback); }
+function isFollowingUsers(userIds, callback) { _libraryContains('user', userIds, callback); }
+
+// Playlists (following)
+function followPlaylist(playlistId, options, callback) { _librarySave('playlist', [playlistId], _cb(options, callback)); }
+function unfollowPlaylist(playlistId, callback) { _libraryRemove('playlist', [playlistId], callback); }
+// userIds is ignored: only the current user can be checked now.
+function areFollowingPlaylist(playlistId, userIds, callback) { _libraryContains('playlist', [playlistId], callback); }
+
+// Only the current user's playlists can be read now.
+function getUserPlaylists(userId, options, callback) {
+  if (typeof userId !== 'string') {
+    callback = options;
+    options = userId;
+  }
+  return _checkParamsAndPerformRequest({ url: _baseUri + '/me/playlists' }, options, callback);
+}
+
+function createPlaylist(userId, options, callback) {
+  var requestData = {
+    url: _baseUri + '/me/playlists',
+    type: 'POST',
+    postData: options
+  };
+  return _checkParamsAndPerformRequest(requestData, options, callback);
+}
+
+// Playlist content: /tracks became /items
+function getPlaylistTracks(playlistId, options, callback) {
+  return _checkParamsAndPerformRequest({ url: _baseUri + '/playlists/' + playlistId + '/items' }, options, callback);
+}
+
+function addTracksToPlaylist(playlistId, uris, options, callback) {
+  var requestData = {
+    url: _baseUri + '/playlists/' + playlistId + '/items',
+    type: 'POST',
+    postData: { uris: uris }
+  };
+  return _checkParamsAndPerformRequest(requestData, options, callback, true);
+}
+
+function replaceTracksInPlaylist(playlistId, uris, callback) {
+  var requestData = {
+    url: _baseUri + '/playlists/' + playlistId + '/items',
+    type: 'PUT',
+    postData: { uris: uris }
+  };
+  return _checkParamsAndPerformRequest(requestData, {}, callback);
+}
+
+function reorderTracksInPlaylist(playlistId, rangeStart, insertBefore, options, callback) {
+  /* eslint-disable camelcase */
+  var requestData = {
+    url: _baseUri + '/playlists/' + playlistId + '/items',
+    type: 'PUT',
+    postData: { range_start: rangeStart, insert_before: insertBefore }
+  };
+  /* eslint-enable camelcase */
+  return _checkParamsAndPerformRequest(requestData, options, callback);
+}
+
+function _uriObjects(uris) {
+  return uris.map(function(uri) { return (typeof uri === 'string') ? { uri: uri } : uri; });
+}
+
+function removeTracksFromPlaylist(playlistId, uris, callback) {
+  var requestData = {
+    url: _baseUri + '/playlists/' + playlistId + '/items',
+    type: 'DELETE',
+    postData: { items: _uriObjects(uris) }
+  };
+  return _checkParamsAndPerformRequest(requestData, {}, callback);
+}
+
+function removeTracksFromPlaylistWithSnapshotId(playlistId, uris, snapshotId, callback) {
+  /* eslint-disable camelcase */
+  var requestData = {
+    url: _baseUri + '/playlists/' + playlistId + '/items',
+    type: 'DELETE',
+    postData: { items: _uriObjects(uris), snapshot_id: snapshotId }
+  };
+  /* eslint-enable camelcase */
+  return _checkParamsAndPerformRequest(requestData, {}, callback);
+}
+
+function removeTracksFromPlaylistInPositions(playlistId, positions, snapshotId, callback) {
+  /* eslint-disable camelcase */
+  var requestData = {
+    url: _baseUri + '/playlists/' + playlistId + '/items',
+    type: 'DELETE',
+    postData: { positions: positions, snapshot_id: snapshotId }
+  };
+  /* eslint-enable camelcase */
+  return _checkParamsAndPerformRequest(requestData, {}, callback);
+}
+
+// The "several items" endpoints (GET /albums, /artists, /tracks) are gone:
+// fetch the items one by one and return the same shape as before.
+function _getSeveral(path, key, ids, options, callback) {
+  var cb = _cb(options, callback);
+  var opt = (typeof options === 'object') ? options : {};
+  var result = [];
+  var next = function(index) {
+    if (index >= ids.length) {
+      var data = {};
+      data[key] = result;
+      if (cb) cb(null, data);
+      return;
+    }
+    _checkParamsAndPerformRequest({ url: _baseUri + path + ids[index] }, _extend({}, opt), function(error, data) {
+      result.push(error ? null : data);
+      next(index + 1);
+    });
+  };
+  next(0);
+}
+
+function getAlbums(albumIds, options, callback) { _getSeveral('/albums/', 'albums', albumIds, options, callback); }
+function getArtists(artistIds, options, callback) { _getSeveral('/artists/', 'artists', artistIds, options, callback); }
+function getTracks(trackIds, options, callback) { _getSeveral('/tracks/', 'tracks', trackIds, options, callback); }
+
+// Search: the maximum 'limit' is now 10 (a higher value gives an error).
+function search(query, types, options, callback) {
+  var requestData = {
+    url: _baseUri + '/search/',
+    params: { q: query, type: types.join(',') }
+  };
+  if (options && typeof options === 'object' && options.limit !== undefined)
+    options.limit = Math.min(options.limit, 10);
+  return _checkParamsAndPerformRequest(requestData, options, callback);
+}
+
+// Endpoints removed without replacement: answer with a clear error instead
+// of an obscure 403/404 so the pages can tell the user.
+function _removedEndpoint(name) {
+  return function() {
+    var cb = null;
+    for (var i = arguments.length - 1; i >= 0; i--)
+      if (typeof arguments[i] === 'function') { cb = arguments[i]; break; }
+    console.log("Spotify Web API: " + name + " is no longer available");
+    if (cb)
+      cb({ status: 410, message: "No longer offered by Spotify" }, null);
+  };
+}
+function getFeaturedPlaylists() { _removedEndpoint('featured-playlists').apply(null, arguments); }
+function getNewReleases() { _removedEndpoint('new-releases').apply(null, arguments); }
+function getCategories() { _removedEndpoint('categories').apply(null, arguments); }
+function getCategory() { _removedEndpoint('category').apply(null, arguments); }
+function getCategoryPlaylists() { _removedEndpoint('category playlists').apply(null, arguments); }
+function getRecommendations() { _removedEndpoint('recommendations').apply(null, arguments); }
+function getAvailableGenreSeeds() { _removedEndpoint('genre seeds').apply(null, arguments); }
+function getArtistTopTracks() { _removedEndpoint('artist top tracks').apply(null, arguments); }
+function getArtistRelatedArtists() { _removedEndpoint('related artists').apply(null, arguments); }
+function getAudioFeaturesForTrack() { _removedEndpoint('audio features').apply(null, arguments); }
+function getAudioFeaturesForTracks() { _removedEndpoint('audio features').apply(null, arguments); }
+function getAudioAnalysisForTrack() { _removedEndpoint('audio analysis').apply(null, arguments); }
+function getUser() { _removedEndpoint('user profile').apply(null, arguments); }

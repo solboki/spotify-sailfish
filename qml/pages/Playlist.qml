@@ -266,6 +266,10 @@ Page {
                 }
             } else {
                 console.log("No Data for getPlaylistTracks")
+                // Since February 2026 Spotify only returns the content of
+                // playlists the user owns or collaborates on.
+                if(error && searchModel.count === 0)
+                    app.showErrorMessage(null, qsTr("Spotify no longer shows the tracks of playlists you do not own. Use the play button to listen to it."))
             }
             _loading = false
         })

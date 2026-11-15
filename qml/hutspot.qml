@@ -234,8 +234,8 @@ ApplicationWindow {
             else
                 pageUrl = Qt.resolvedUrl("pages/MyStuff.qml")
             break;
-        case "NewReleasePage":
-            pageUrl = Qt.resolvedUrl("pages/NewAndFeatured.qml")
+        case "NewReleasePage": // removed by Spotify (Web API, Feb. 2026)
+            pageUrl = Qt.resolvedUrl("pages/MyStuff.qml")
             break;
         case "MyStuffPage":
             pageUrl = Qt.resolvedUrl("pages/MyStuff.qml")
@@ -246,14 +246,14 @@ ApplicationWindow {
         case "SearchPage":
             pageUrl = Qt.resolvedUrl("pages/Search.qml")
             break;
-        case 'GenreMoodPage':
-            pageUrl = Qt.resolvedUrl("pages/GenreMood.qml")
+        case 'GenreMoodPage': // removed by Spotify (Web API, Feb. 2026)
+            pageUrl = Qt.resolvedUrl("pages/MyStuff.qml")
             break;
         case 'HistoryPage':
             pageUrl = Qt.resolvedUrl("pages/History.qml")
             break;
-        case 'RecommendedPage':
-            pageUrl = Qt.resolvedUrl("pages/Recommended.qml")
+        case 'RecommendedPage': // removed by Spotify (Web API, Feb. 2026)
+            pageUrl = Qt.resolvedUrl("pages/MyStuff.qml")
             break;
         }
         if(pageUrl !== undefined ) {
