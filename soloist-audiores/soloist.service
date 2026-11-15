@@ -1,0 +1,14 @@
+[Unit]
+Description=Spotify Soloist (Spotify Connect)
+After=pulseaudio.service
+
+[Service]
+EnvironmentFile=%h/.config/soloist/env
+Environment=LD_PRELOAD=%h/lib/libforcerole.so
+Environment=PULSE_PROP_media.role=x-maemo
+ExecStart=%h/bin/soloist-audiores %h/soloist/soloist -n JollaPhone -k ${SOLOIST_API_KEY} -i 60 -z 500
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=post-user-session.target
