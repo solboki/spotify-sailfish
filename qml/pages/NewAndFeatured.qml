@@ -1,9 +1,18 @@
 /**
  * Copyright (C) 2018 Willem-Jan de Hoog
  *
+ * "Featured" page, rebuilt for the Spotify Web API of 2026.
+ *
+ * Spotify removed the editorial endpoints (new releases, featured playlists,
+ * categories, recommendations) for Development Mode apps. This page builds
+ * the same kind of content from what is still available:
+ *   - new releases of the artists the user follows or listens to most
+ *   - new albums on Spotify (search with "tag:new")
+ *   - playlists matching the user's favourite genres (search)
+ *   - the user's all-time favourite tracks
+ *
  * License: MIT
  */
-
 
 import QtQuick 2.2
 import Sailfish.Silica 1.0
@@ -13,23 +22,34 @@ import "../Spotify.js" as Spotify
 import "../Util.js" as Util
 
 Page {
-    id: newRelease
+    id: featuredPage
     objectName: "NewReleasePage"
 
     property bool showBusy: false
-
-    property int currentIndex: -1
-    property string featuredPlaylistsMessage: ""
+    property string busyText: ""
 
     allowedOrientations: Orientation.All
 
+    // number of days a release is considered "new"
+    readonly property int newReleaseDays: 90
+    // max number of artists whose albums are checked (one request each)
+    readonly property int maxArtists: 30
+
     ListModel {
-        id: searchModel
+        id: featuredModel
     }
 
     SilicaListView {
         id: listView
-        model: searchModel
+        model: featuredModel
+
+        NavigationPullDown {
+            currentPage: "NewReleasePage"
+            MenuItem {
+                text: qsTr("Reload")
+                onClicked: refresh()
+            }
+        }
 
         width: parent.width
         anchors.top: parent.top
@@ -37,37 +57,28 @@ Page {
         clip: app.dockedPanel.expanded
 
         header: Column {
-            id: lvColumn
-
             width: parent.width - 2*Theme.paddingMedium
             x: Theme.paddingMedium
-            anchors.bottomMargin: Theme.paddingLarge
-            spacing: Theme.paddingLarge
+            spacing: Theme.paddingSmall
 
             PageHeader {
-                id: pHeader
                 width: parent.width
-                title: {
-                    switch(_itemClass) {
-                    case 0: return Util.createPageHeaderLabel("", qsTr("New Releases"), Theme)
-                    case 1: return Util.createPageHeaderLabel("", qsTr("Featured"), Theme)
-                    }
-                }
-                MenuButton { z: 1} // set z so you can still click the button
-                MouseArea {
-                    anchors.fill: parent
-                    propagateComposedEvents: true
-                    onClicked: nextItemClass()
-                }
+                title: qsTr("Featured")
             }
 
-            SectionHeader {
+            Label {
+                visible: busyText.length > 0
                 width: parent.width
-                x: 0
-                text: featuredPlaylistsMessage
-                visible: _itemClass == 1
+                text: busyText
+                color: Theme.secondaryHighlightColor
+                font.pixelSize: Theme.fontSizeSmall
+                horizontalAlignment: Text.AlignHCenter
             }
+        }
 
+        section.property: "section"
+        section.delegate: SectionHeader {
+            text: section
         }
 
         delegate: ListItem {
@@ -76,7 +87,6 @@ Page {
             contentHeight: Theme.itemSizeLarge
 
             SearchResultListItem {
-                id: searchResultListItem
                 dataModel: model
             }
 
@@ -87,8 +97,14 @@ Page {
                 case Util.SpotifyItemType.Album:
                     app.pushPage(Util.HutspotPage.Album, {album: item})
                     break
+                case Util.SpotifyItemType.Artist:
+                    app.pushPage(Util.HutspotPage.Artist, {currentArtist: item})
+                    break
                 case Util.SpotifyItemType.Playlist:
                     app.pushPage(Util.HutspotPage.Playlist, {playlist: item})
+                    break
+                case Util.SpotifyItemType.Track:
+                    app.pushPage(Util.HutspotPage.Album, {album: item.album})
                     break
                 }
             }
@@ -97,140 +113,230 @@ Page {
         VerticalScrollDecorator {}
 
         ViewPlaceholder {
-            enabled: listView.count === 0
+            enabled: listView.count === 0 && !showBusy
             text: qsTr("Nothing found")
-        }
-
-        onAtYEndChanged: {
-            if(listView.atYEnd && searchModel.count > 0)
-                append()
+            hintText: qsTr("Pull down to reload")
         }
     }
 
-    property var topTracks
-    property var topArtists
-    property int _itemClass: app.current_item_classes.featuredStuff
+    BusyIndicator {
+        running: showBusy && listView.count === 0
+        anchors.centerIn: parent
+        size: BusyIndicatorSize.Large
+    }
 
-    function nextItemClass() {
-        var i = _itemClass
-        i++
-        if(i > 1)
-            i = 0
-        _itemClass = i
-        app.current_item_classes.featuredStuff = i
-        refresh()
+    // The sections, in display order. Each one is filled independently.
+    property var _sections: ({})
+    readonly property var _order: ["artists", "new", "playlists", "classics"]
+
+    function _sectionTitle(key) {
+        switch(key) {
+        case "artists": return qsTr("New from your artists")
+        case "new": return qsTr("New on Spotify")
+        case "playlists": return qsTr("Playlists for you")
+        case "classics": return qsTr("Your all-time favourites")
+        }
+        return ""
+    }
+
+    // Rebuild the model from the sections, keeping the display order.
+    function _rebuild() {
+        featuredModel.clear()
+        for(var s=0;s<_order.length;s++) {
+            var items = _sections[_order[s]]
+            if(!items)
+                continue
+            for(var i=0;i<items.length;i++) {
+                var it = items[i]
+                featuredModel.append({type: it.type, stype: it.type,
+                                      name: it.item.name,
+                                      item: it.item,
+                                      following: false,
+                                      saved: false,
+                                      played_at: "",
+                                      section: _sectionTitle(_order[s])})
+            }
+        }
+    }
+
+    function _setSection(key, items) {
+        var copy = _sections
+        copy[key] = items
+        _sections = copy
+        _rebuild()
+    }
+
+    property int _pending: 0
+    function _done() {
+        _pending--
+        if(_pending <= 0) {
+            showBusy = false
+            busyText = ""
+        }
     }
 
     function refresh() {
+        _sections = ({})
+        featuredModel.clear()
         showBusy = true
-        searchModel.clear()
-        append()
+        // artists + genre playlists, new on Spotify, classics
+        _pending = 4
+        loadArtistReleasesAndGenres()
+        loadNewOnSpotify()
+        loadClassics()
     }
 
-    property bool _loading: false
-
-    function append() {
-        // if already at the end -> bail out
-        if(searchModel.count > 0 && searchModel.count >= cursorHelper.total)
-            return
-
-        // guard
-        if(_loading)
-            return
-        _loading = true
-
-        var i
-        var options
-        switch(_itemClass) {
-        case 0:
-            options = {offset: searchModel.count, limit: cursorHelper.limit}
-            Spotify.getNewReleases(options, function(error, data) {
-                try {
-                    if(data) {
-                        cursorHelper.offset = data.albums.offset
-                        cursorHelper.total = data.albums.total
-                        try {
-                            for(i=0;i<data.albums.items.length;i++) {
-                                searchModel.append({type: Util.SpotifyItemType.Album,
-                                                    name: data.albums.items[i].name,
-                                                    item: data.albums.items[i],
-                                                    following: false,
-                                                    saved: app.spotifyDataCache.isPlaylistFollowed(data.albums.items[i].id)})
-                            }
-                        } catch (err) {
-                            console.log(err)
-                        }
-                    } else {
-                        console.log("getNewReleases returned no results.")
-                    }
-                } catch(err) {
-                    console.log("getNewReleases exception: " + err)
-                } finally {
-                    showBusy = false
-                    _loading = false
+    // --- New releases of followed and top artists, and favourite genres ---
+    function loadArtistReleasesAndGenres() {
+        var artists = []
+        var seen = {}
+        var genreCount = {}
+        var addArtists = function(list) {
+            for(var i=0;i<list.length;i++) {
+                var a = list[i]
+                if(!a)
+                    continue
+                if(a.genres)
+                    for(var g=0;g<a.genres.length;g++)
+                        genreCount[a.genres[g]] = (genreCount[a.genres[g]] || 0) + 1
+                if(!seen[a.id]) {
+                    seen[a.id] = true
+                    artists.push(a)
                 }
-            })
-            break
-        case 1:
-            options = {offset: searchModel.count, limit: cursorHelper.limit}
-            options.timestamp = new Date().toISOString()
-            if(app.locale_config.country.length === 2)
-                options.country = app.locale_config.country
-            Spotify.getFeaturedPlaylists(options, function(error, data) {
-                try {
-                    if(data) {
-                        cursorHelper.offset = data.playlists.offset
-                        cursorHelper.total = data.playlists.total
-                        featuredPlaylistsMessage = data.message
-                        try {
-                            for(i=0;i<data.playlists.items.length;i++) {
-                                searchModel.append({type: Util.SpotifyItemType.Playlist,
-                                                    name: data.playlists.items[i].name,
-                                                    item: data.playlists.items[i],
-                                                    following: app.spotifyDataCache.isPlaylistFollowed(data.playlists.items[i].id),
-                                                    saved: false})
-                            }
-                        } catch (err) {
-                            console.log(err)
-                        }
-                    } else {
-                        console.log("getFeaturedPlaylists returned no results.")
-                    }
-                } catch(err) {
-                    console.log("getFeaturedPlaylists exception: " + err)
-                } finally {
-                    showBusy = false
-                    _loading = false
-                }
-            })
-            break
+            }
         }
+        Spotify.getMyTopArtists({limit: 20, time_range: "medium_term"}, function(error, data) {
+            if(data && data.items)
+                addArtists(data.items)
+            Spotify.getFollowedArtists({limit: 50}, function(error2, data2) {
+                if(data2 && data2.artists && data2.artists.items)
+                    addArtists(data2.artists.items)
+                loadGenrePlaylists(genreCount)
+                loadArtistReleases(artists.slice(0, maxArtists))
+            })
+        })
     }
 
-    property alias cursorHelper: cursorHelper
-
-    CursorHelper {
-        id: cursorHelper
+    function _parseReleaseDate(s) {
+        // release_date can be "2026", "2026-11" or "2026-11-07"
+        if(s.length === 4)
+            s += "-01-01"
+        else if(s.length === 7)
+            s += "-01"
+        return new Date(s)
     }
+
+    function loadArtistReleases(artists) {
+        var limitDate = new Date(Date.now() - newReleaseDays * 24 * 3600 * 1000)
+        var releases = []
+        var seenAlbum = {}
+        var next = function(index) {
+            if(index >= artists.length) {
+                releases.sort(function(a, b) {
+                    return b.item.release_date.localeCompare(a.item.release_date)
+                })
+                _setSection("artists", releases)
+                _done()
+                return
+            }
+            busyText = qsTr("Checking your artists") + " " + (index + 1) + "/" + artists.length
+            Spotify.getArtistAlbums(artists[index].id,
+                                    {include_groups: "album,single", limit: 5},
+                                    function(error, data) {
+                if(data && data.items) {
+                    for(var i=0;i<data.items.length;i++) {
+                        var album = data.items[i]
+                        if(!album || seenAlbum[album.id] || !album.release_date)
+                            continue
+                        if(_parseReleaseDate(album.release_date) >= limitDate) {
+                            seenAlbum[album.id] = true
+                            releases.push({type: Util.SpotifyItemType.Album, item: album})
+                        }
+                    }
+                }
+                next(index + 1)
+            })
+        }
+        next(0)
+    }
+
+    // --- New albums on Spotify ---
+    function loadNewOnSpotify() {
+        var items = []
+        var add = function(data) {
+            if(data && data.albums && data.albums.items)
+                for(var i=0;i<data.albums.items.length;i++)
+                    if(data.albums.items[i])
+                        items.push({type: Util.SpotifyItemType.Album, item: data.albums.items[i]})
+        }
+        Spotify.search("tag:new", ["album"], {limit: 10, offset: 0}, function(error, data) {
+            add(data)
+            Spotify.search("tag:new", ["album"], {limit: 10, offset: 10}, function(error2, data2) {
+                add(data2)
+                _setSection("new", items)
+                _done()
+            })
+        })
+    }
+
+    // --- Playlists for the 3 favourite genres ---
+    function loadGenrePlaylists(genreCount) {
+        var genres = Object.keys(genreCount)
+        genres.sort(function(a, b) { return genreCount[b] - genreCount[a] })
+        genres = genres.slice(0, 3)
+        var items = []
+        var seen = {}
+        var next = function(index) {
+            if(index >= genres.length) {
+                _setSection("playlists", items)
+                _done()
+                return
+            }
+            Spotify.search(genres[index], ["playlist"], {limit: 5}, function(error, data) {
+                if(data && data.playlists && data.playlists.items)
+                    for(var i=0;i<data.playlists.items.length;i++) {
+                        var pl = data.playlists.items[i]
+                        // the list can contain null entries
+                        if(pl && !seen[pl.id]) {
+                            seen[pl.id] = true
+                            items.push({type: Util.SpotifyItemType.Playlist, item: pl})
+                        }
+                    }
+                next(index + 1)
+            })
+        }
+        next(0)
+    }
+
+    // --- All-time favourite tracks ---
+    function loadClassics() {
+        Spotify.getMyTopTracks({limit: 10, time_range: "long_term"}, function(error, data) {
+            var items = []
+            if(data && data.items)
+                for(var i=0;i<data.items.length;i++)
+                    items.push({type: Util.SpotifyItemType.Track, item: data.items[i]})
+            _setSection("classics", items)
+            _done()
+        })
+    }
+
+    property bool _loadedOnce: false
 
     Connections {
         target: app
-        onHasValidTokenChanged: refresh()
-        onFavoriteEvent: {
-            switch(event.type) {
-            case Util.SpotifyItemType.Album:
-            case Util.SpotifyItemType.Playlist:
-                Util.setSavedInfo(event.type, [event.id], [event.isFavorite], searchModel)
-                break
+        onHasValidTokenChanged: {
+            if(app.hasValidToken && !_loadedOnce) {
+                _loadedOnce = true
+                refresh()
             }
         }
-        // if this is the first page data might already be loaded before the data cache is ready
-        onSpotifyDataCacheReady: Util.updateFollowingSaved(app.spotifyDataCache, searchModel)
     }
 
     Component.onCompleted: {
-        if(app.hasValidToken)
+        if(app.hasValidToken) {
+            _loadedOnce = true
             refresh()
+        }
     }
 
     // The shared DockedPanel needs mouse events
@@ -242,5 +348,4 @@ Page {
         else if(status === PageStatus.Deactivating)
             app.dockedPanel.unregisterListView(listView)
     }
-
 }

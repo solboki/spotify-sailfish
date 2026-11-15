@@ -234,8 +234,8 @@ ApplicationWindow {
             else
                 pageUrl = Qt.resolvedUrl("pages/MyStuff.qml")
             break;
-        case "NewReleasePage": // removed by Spotify (Web API, Feb. 2026)
-            pageUrl = Qt.resolvedUrl("pages/MyStuff.qml")
+        case "NewReleasePage": // rebuilt from the endpoints still available
+            pageUrl = Qt.resolvedUrl("pages/NewAndFeatured.qml")
             break;
         case "MyStuffPage":
             pageUrl = Qt.resolvedUrl("pages/MyStuff.qml")

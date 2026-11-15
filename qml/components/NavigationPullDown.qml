@@ -48,6 +48,11 @@ PullDownMenu {
         onClicked: app.showPage('SearchPage')
     }
     MenuItem {
+        visible: currentPage !== "NewReleasePage"
+        text: qsTr("Featured")
+        onClicked: app.showPage('NewReleasePage')
+    }
+    MenuItem {
         visible: currentPage !== "MyStuffPage"
         text: qsTr("My Library")
         onClicked: app.showPage('MyStuffPage')

@@ -7,10 +7,12 @@
 
 import QtQuick 2.2
 import Sailfish.Silica 1.0
+import org.nemomobile.configuration 1.0
 
 import "../components"
 import "../Spotify.js" as Spotify
 import "../Util.js" as Util
+import "../GenreCache.js" as GenreCache
 
 Page {
     id: myStuffPage
@@ -25,8 +27,28 @@ Page {
 
     SortedListModel {
         id: searchModel
-        sortKey: _itemClass != 2 ? "name" : ""
+        sortKey: {
+            if(_itemClass === 2)
+                return ""
+            if(_itemClass !== 0)
+                return "name"
+            switch(albumSort.value) {
+            case 1: return "artistSort,name"
+            case 2: return "genreSort,artistSort,name"
+            case 3: return "-added_at,name"
+            default: return "name"
+            }
+        }
     }
+
+    // 0: title, 1: artist, 2: genre, 3: date added
+    ConfigurationValue {
+        id: albumSort
+        key: "/hutspot/album_sort"
+        defaultValue: 0
+    }
+
+    property string busyText: ""
 
     SilicaListView {
         id: listView
@@ -77,6 +99,35 @@ Page {
                         setItemClass(currentIndex)
                 }
             }
+
+            ComboBox {
+                id: albumSortBox
+                width: parent.width
+                visible: _itemClass === 0
+                label: qsTr("Sort by")
+                currentIndex: albumSort.value
+                menu: ContextMenu {
+                    MenuItem { text: qsTr("Title") }
+                    MenuItem { text: qsTr("Artist") }
+                    MenuItem { text: qsTr("Genre") }
+                    MenuItem { text: qsTr("Date added") }
+                }
+                onCurrentIndexChanged: {
+                    if(currentIndex >= 0 && currentIndex !== albumSort.value) {
+                        albumSort.value = currentIndex
+                        refresh()
+                    }
+                }
+            }
+
+            Label {
+                visible: busyText.length > 0
+                width: parent.width
+                text: busyText
+                color: Theme.secondaryHighlightColor
+                font.pixelSize: Theme.fontSizeSmall
+                horizontalAlignment: Text.AlignHCenter
+            }
         }
 
         SectionDelegate {
@@ -84,7 +135,7 @@ Page {
         }
 
         // no name section for Recently Played
-        section.property: _itemClass != 2 ? "nameFirstChar" : ""
+        section.property: _itemClass != 2 ? "section" : ""
         section.delegate: sectionDelegate
 
         delegate: ListItem {
@@ -211,6 +262,8 @@ Page {
 
     function addData(obj) {
         obj.nameFirstChar = Util.getFirstCharForSection(obj.name)
+        if(!obj.hasOwnProperty('section'))
+            obj.section = obj.nameFirstChar
         if(!obj.hasOwnProperty('played_at'))
             obj.played_at = ""
         if(!obj.hasOwnProperty('following'))
@@ -218,14 +271,92 @@ Page {
         searchModel.add(obj)
     }
 
+    // savedItem: {added_at, album}
+    function addAlbum(savedItem) {
+        var album = savedItem.album
+        var artist = (album.artists && album.artists.length > 0) ? album.artists[0] : null
+        var artistName = artist ? artist.name : ""
+        var genre = artist ? GenreCache.mainGenre(artist.id) : ""
+        var obj = {type: 0, stype: 0,
+                   name: album.name,
+                   item: album,
+                   following: false, saved: true,
+                   added_at: savedItem.added_at ? savedItem.added_at : "",
+                   artistSort: artistName.toLowerCase(),
+                   genreSort: genre.length > 0 ? genre.toLowerCase() : "\uffff"}
+        switch(albumSort.value) {
+        case 1:
+            obj.section = artistName
+            break
+        case 2:
+            obj.section = genre.length > 0 ? genre : qsTr("Unknown genre")
+            break
+        case 3:
+            obj.section = obj.added_at
+                    ? Qt.formatDate(new Date(obj.added_at), "MMMM yyyy")
+                    : ""
+            break
+        default:
+            obj.section = Util.getFirstCharForSection(album.name)
+        }
+        addData(obj)
+    }
+
+    // Sorting by artist, genre or date needs the whole list of albums
+    property bool _loadingAll: false
+
+    function loadAllAlbums() {
+        if(_loadingAll)
+            return
+        _loadingAll = true
+        showBusy = true
+        busyText = qsTr("Loading albums")
+        var all = []
+        var page = function(offset) {
+            Spotify.getMySavedAlbums({offset: offset, limit: 50}, function(error, data) {
+                if(data && data.items) {
+                    for(var i=0;i<data.items.length;i++)
+                        all.push(data.items[i])
+                    cursorHelper.total = data.total
+                    busyText = qsTr("Loading albums") + " " + all.length + "/" + data.total
+                    if(data.items.length > 0 && all.length < data.total) {
+                        page(all.length)
+                        return
+                    }
+                }
+                if(albumSort.value === 2) {
+                    var ids = []
+                    for(var j=0;j<all.length;j++)
+                        if(all[j].album.artists && all[j].album.artists.length > 0)
+                            ids.push(all[j].album.artists[0].id)
+                    busyText = qsTr("Loading genres")
+                    GenreCache.fetchMissing(ids, function(done, total) {
+                        busyText = qsTr("Loading genres") + " " + done + "/" + total
+                    }, function() {
+                        fillAllAlbums(all)
+                    })
+                } else
+                    fillAllAlbums(all)
+            })
+        }
+        page(0)
+    }
+
+    function fillAllAlbums(all) {
+        searchModel.clear()
+        for(var i=0;i<all.length;i++)
+            addAlbum(all[i])
+        cursorHelper.total = all.length
+        _loadingAll = false
+        showBusy = false
+        busyText = ""
+    }
+
     function loadData() {
         var i
         if(savedAlbums)
             for(i=0;i<savedAlbums.items.length;i++)
-                addData({type: 0, stype: 0,
-                         name: savedAlbums.items[i].album.name,
-                         item: savedAlbums.items[i].album,
-                         following: false, saved: true})
+                addAlbum(savedAlbums.items[i])
         if(userPlaylists)
             for(i=0;i<userPlaylists.items.length;i++) {
                 addData({type: 2, stype: 2,
@@ -284,6 +415,12 @@ Page {
         _loading = true
 
         var i, options;
+        if(_itemClass === 0 && albumSort.value !== 0) {
+            _loading = false
+            if(searchModel.count === 0)
+                loadAllAlbums()
+            return
+        }
         switch(_itemClass) {
         case 0:
             Spotify.getMySavedAlbums({offset: searchModel.count, limit: cursorHelper.limit}, function(error, data) {

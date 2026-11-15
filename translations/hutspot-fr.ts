@@ -405,54 +405,96 @@
 <context>
     <name>MyStuff</name>
     <message>
-        <location filename="../qml/pages/MyStuff.qml" line="43" />
+        <location filename="../qml/pages/MyStuff.qml" line="65" />
         <source>Reload</source>
         <translation>Recharger</translation>
     </message>
     <message>
-        <location filename="../qml/pages/MyStuff.qml" line="59" />
+        <location filename="../qml/pages/MyStuff.qml" line="81" />
         <source>My Library</source>
         <translation>Ma bibliothèque</translation>
     </message>
     <message>
-        <location filename="../qml/pages/MyStuff.qml" line="66" />
+        <location filename="../qml/pages/MyStuff.qml" line="88" />
         <source>Show</source>
         <translation>Afficher</translation>
     </message>
     <message>
-        <location filename="../qml/pages/MyStuff.qml" line="69" />
+        <location filename="../qml/pages/MyStuff.qml" line="91" />
         <source>Saved Albums</source>
         <translation>Albums enregistrés</translation>
     </message>
     <message>
-        <location filename="../qml/pages/MyStuff.qml" line="70" />
+        <location filename="../qml/pages/MyStuff.qml" line="92" />
         <source>Playlists</source>
         <translation>Playlists</translation>
     </message>
     <message>
-        <location filename="../qml/pages/MyStuff.qml" line="71" />
+        <location filename="../qml/pages/MyStuff.qml" line="93" />
         <source>Recently Played</source>
         <translation>Écoutés récemment</translation>
     </message>
     <message>
-        <location filename="../qml/pages/MyStuff.qml" line="72" />
+        <location filename="../qml/pages/MyStuff.qml" line="94" />
         <source>Saved Tracks</source>
         <translation>Titres enregistrés</translation>
     </message>
     <message>
-        <location filename="../qml/pages/MyStuff.qml" line="73" />
+        <location filename="../qml/pages/MyStuff.qml" line="95" />
         <source>Followed Artists</source>
         <translation>Artistes suivis</translation>
     </message>
     <message>
-        <location filename="../qml/pages/MyStuff.qml" line="104" />
+        <location filename="../qml/pages/MyStuff.qml" line="107" />
+        <source>Sort by</source>
+        <translation>Trier par</translation>
+    </message>
+    <message>
+        <location filename="../qml/pages/MyStuff.qml" line="110" />
+        <source>Title</source>
+        <translation>Titre</translation>
+    </message>
+    <message>
+        <location filename="../qml/pages/MyStuff.qml" line="111" />
+        <source>Artist</source>
+        <translation>Artiste</translation>
+    </message>
+    <message>
+        <location filename="../qml/pages/MyStuff.qml" line="112" />
+        <source>Genre</source>
+        <translation>Genre</translation>
+    </message>
+    <message>
+        <location filename="../qml/pages/MyStuff.qml" line="113" />
+        <source>Date added</source>
+        <translation>Date d'ajout</translation>
+    </message>
+    <message>
+        <location filename="../qml/pages/MyStuff.qml" line="155" />
         <source>Unfollow</source>
         <translation>Ne plus suivre</translation>
     </message>
     <message>
-        <location filename="../qml/pages/MyStuff.qml" line="144" />
+        <location filename="../qml/pages/MyStuff.qml" line="195" />
         <source>Nothing found</source>
         <translation>Aucun résultat</translation>
+    </message>
+    <message>
+        <location filename="../qml/pages/MyStuff.qml" line="292" />
+        <source>Unknown genre</source>
+        <translation>Genre inconnu</translation>
+    </message>
+    <message>
+        <location filename="../qml/pages/MyStuff.qml" line="313" />
+        <location filename="../qml/pages/MyStuff.qml" line="321" />
+        <source>Loading albums</source>
+        <translation>Chargement des albums</translation>
+    </message>
+    <message>
+        <location filename="../qml/pages/MyStuff.qml" line="332" />
+        <location filename="../qml/pages/MyStuff.qml" line="334" />
+        <source>Loading genres</source>
+        <translation>Chargement des genres</translation>
     </message>
 </context>
 <context>
@@ -590,11 +632,16 @@
     </message>
     <message>
         <location filename="../qml/components/NavigationPullDown.qml" line="52" />
+        <source>Featured</source>
+        <translation>À la une</translation>
+    </message>
+    <message>
+        <location filename="../qml/components/NavigationPullDown.qml" line="57" />
         <source>My Library</source>
         <translation>Ma bibliothèque</translation>
     </message>
     <message>
-        <location filename="../qml/components/NavigationPullDown.qml" line="57" />
+        <location filename="../qml/components/NavigationPullDown.qml" line="62" />
         <source>Now Playing</source>
         <translation>Lecture en cours</translation>
     </message>
@@ -602,19 +649,53 @@
 <context>
     <name>NewAndFeatured</name>
     <message>
-        <location filename="../qml/pages/NewAndFeatured.qml" line="52" />
         <source>New Releases</source>
         <translation>Nouveautés</translation>
     </message>
     <message>
-        <location filename="../qml/pages/NewAndFeatured.qml" line="53" />
+        <location filename="../qml/pages/NewAndFeatured.qml" line="49" />
+        <source>Reload</source>
+        <translation>Recharger</translation>
+    </message>
+    <message>
+        <location filename="../qml/pages/NewAndFeatured.qml" line="66" />
         <source>Featured</source>
         <translation>À la une</translation>
     </message>
     <message>
-        <location filename="../qml/pages/NewAndFeatured.qml" line="101" />
+        <location filename="../qml/pages/NewAndFeatured.qml" line="117" />
         <source>Nothing found</source>
         <translation>Aucun résultat</translation>
+    </message>
+    <message>
+        <location filename="../qml/pages/NewAndFeatured.qml" line="118" />
+        <source>Pull down to reload</source>
+        <translation>Tirez vers le bas pour recharger</translation>
+    </message>
+    <message>
+        <location filename="../qml/pages/NewAndFeatured.qml" line="134" />
+        <source>New from your artists</source>
+        <translation>Nouveautés de vos artistes</translation>
+    </message>
+    <message>
+        <location filename="../qml/pages/NewAndFeatured.qml" line="135" />
+        <source>New on Spotify</source>
+        <translation>Nouveautés sur Spotify</translation>
+    </message>
+    <message>
+        <location filename="../qml/pages/NewAndFeatured.qml" line="136" />
+        <source>Playlists for you</source>
+        <translation>Playlists pour vous</translation>
+    </message>
+    <message>
+        <location filename="../qml/pages/NewAndFeatured.qml" line="137" />
+        <source>Your all-time favourites</source>
+        <translation>Vos classiques</translation>
+    </message>
+    <message>
+        <location filename="../qml/pages/NewAndFeatured.qml" line="242" />
+        <source>Checking your artists</source>
+        <translation>Vérification de vos artistes</translation>
     </message>
 </context>
 <context>
