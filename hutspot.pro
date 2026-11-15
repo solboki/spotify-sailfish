@@ -96,6 +96,7 @@ TRANSLATIONS += translations/hutspot.ts \
     translations/hutspot-fi.ts \
     translations/hutspot-it.ts \
     translations/hutspot-sv.ts \
+    translations/hutspot-fr.ts \
     translations/hutspot-zh.ts
 
 HEADERS += \

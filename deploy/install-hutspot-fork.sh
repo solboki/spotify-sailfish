@@ -23,6 +23,13 @@ fi
 cp -a "$HERE/qml/." "$DEST/"
 echo "Fichiers QML du fork installés."
 
+# 2 bis. Traduction française
+if [ -f "$HERE/translations/hutspot-fr.qm" ]; then
+    mkdir -p /usr/share/hutspot/translations
+    cp "$HERE/translations/hutspot-fr.qm" /usr/share/hutspot/translations/
+    echo "Traduction française installée."
+fi
+
 # 3. Bac à sable SailJail désactivé, sinon Hutspot ne peut pas
 #    enregistrer son jeton de connexion (~/.config/wdehoog/hutspot.conf)
 if ! grep -q "^Sandboxing=Disabled" "$DESKTOP"; then
