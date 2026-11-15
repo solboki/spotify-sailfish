@@ -15,9 +15,6 @@ Source0:    %{name}-%{version}.tar.bz2
 
 Requires:   sailfishsilica-qt5 >= 0.10.9
 Requires:   mpris-qt5-qml-plugin
-Requires:   nemo-qml-plugin-configuration-qt5
-Requires:   nemo-qml-plugin-dbus-qt5
-Requires:   qt5-qtdeclarative-import-localstorage
 Requires:   curl
 
 BuildRequires:  pkgconfig(sailfishapp) >= 1.0.2
