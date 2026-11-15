@@ -1,6 +1,8 @@
 import QtQuick 2.0
 import Sailfish.Silica 1.0
 
+import "../Util.js" as Util
+
 Item {
 
     property string defaultImageSource : "image://theme/icon-l-music"
@@ -76,19 +78,12 @@ Item {
                 }
             }
 
-            // menu
+            // devices (the navigation itself is in the pull-down menu)
             IconButton {
                 width: row.itemWidth
                 anchors.verticalCenter: parent.verticalCenter
-                //anchors.right: parent.right
-                icon.source: "image://theme/icon-m-menu"
-                onClicked: {
-                    var dialog = pageStack.push(Qt.resolvedUrl("NavigationMenuDialog.qml")) //, {}, PageStackAction.Immediate)
-                    dialog.done.connect(function() {
-                        if(dialog.selectedMenuItem > -1)
-                            app.doSelectedMenuItem(dialog.selectedMenuItem)
-                    })
-                }
+                icon.source: "image://theme/icon-m-accessory-speaker"
+                onClicked: app.doSelectedMenuItem(Util.HutspotMenuItem.ShowDevicesPage)
             }
 
         }

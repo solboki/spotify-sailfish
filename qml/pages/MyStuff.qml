@@ -37,34 +37,46 @@ Page {
         height: parent.height - app.dockedPanel.visibleSize
         clip: app.dockedPanel.expanded
 
+        NavigationPullDown {
+            currentPage: "MyStuffPage"
+            MenuItem {
+                text: qsTr("Reload")
+                onClicked: refresh()
+            }
+        }
+
         header: Column {
             id: lvColumn
 
             width: parent.width - 2*Theme.paddingMedium
             x: Theme.paddingMedium
             anchors.bottomMargin: Theme.paddingLarge
-            spacing: Theme.paddingLarge
+            spacing: Theme.paddingSmall
 
             PageHeader {
                 id: pHeader
                 width: parent.width
-                title: {
-                    switch(_itemClass) {
-                    case 0: return Util.createPageHeaderLabel(qsTr("My "), qsTr("Saved Albums"), Theme)
-                    case 1: return Util.createPageHeaderLabel(qsTr("My "), qsTr("Playlists"), Theme)
-                    case 2: return Util.createPageHeaderLabel(qsTr("My "), qsTr("Recently Played"), Theme)
-                    case 3: return Util.createPageHeaderLabel(qsTr("My "), qsTr("Saved Tracks"), Theme)
-                    case 4: return Util.createPageHeaderLabel(qsTr("My "), qsTr("Followed Artists"), Theme)
-                    }
-                }
-                MenuButton { z: 1} // set z so you can still click the button
-                MouseArea {
-                    anchors.fill: parent
-                    propagateComposedEvents: true
-                    onClicked: nextItemClass()
-                }
+                title: qsTr("My Library")
             }
 
+            // What to show: replaces the former "tap the title" switch
+            ComboBox {
+                id: itemClassBox
+                width: parent.width
+                label: qsTr("Show")
+                currentIndex: _itemClass
+                menu: ContextMenu {
+                    MenuItem { text: qsTr("Saved Albums") }
+                    MenuItem { text: qsTr("Playlists") }
+                    MenuItem { text: qsTr("Recently Played") }
+                    MenuItem { text: qsTr("Saved Tracks") }
+                    MenuItem { text: qsTr("Followed Artists") }
+                }
+                onCurrentIndexChanged: {
+                    if(currentIndex >= 0 && currentIndex !== _itemClass)
+                        setItemClass(currentIndex)
+                }
+            }
         }
 
         SectionDelegate {
@@ -184,6 +196,13 @@ Page {
         i++
         if(i > 4)
             i = 0
+        _itemClass = i
+        app.current_item_classes.myStuff = i
+        refreshDirection = 0
+        refresh()
+    }
+
+    function setItemClass(i) {
         _itemClass = i
         app.current_item_classes.myStuff = i
         refreshDirection = 0

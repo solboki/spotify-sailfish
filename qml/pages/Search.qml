@@ -39,6 +39,10 @@ Page {
         id: listView
         model: searchModel
 
+        NavigationPullDown {
+            currentPage: "SearchPage"
+        }
+
         width: parent.width
         anchors.top: parent.top
         height: parent.height - app.dockedPanel.visibleSize
@@ -54,21 +58,24 @@ Page {
             PageHeader {
                 id: pHeader
                 width: parent.width
-                title: {
-                    switch(_itemClass) {
-                    case 0: return Util.createPageHeaderLabel(qsTr("Search "), qsTr("Albums"), Theme)
-                    case 1: return Util.createPageHeaderLabel(qsTr("Search "), qsTr("Artists"), Theme)
-                    case 2: return Util.createPageHeaderLabel(qsTr("Search "), qsTr("Playlists"), Theme)
-                    case 3: return Util.createPageHeaderLabel(qsTr("Search "), qsTr("Tracks"), Theme)
-                    default: qsTr("Search")
-                    }
+                title: qsTr("Search")
+            }
+
+            ComboBox {
+                id: itemClassBox
+                width: parent.width
+                label: qsTr("Search in")
+                currentIndex: _itemClass
+                menu: ContextMenu {
+                    MenuItem { text: qsTr("Albums") }
+                    MenuItem { text: qsTr("Artists") }
+                    MenuItem { text: qsTr("Playlists") }
+                    MenuItem { text: qsTr("Tracks") }
                 }
-                MenuButton { z: 1} // set z so you can still click the button
-                MouseArea {
-                    anchors.fill: parent
-                    propagateComposedEvents: true
-                    onClicked: {
-                        nextItemClass()
+                onCurrentIndexChanged: {
+                    if(currentIndex >= 0 && currentIndex !== _itemClass) {
+                        _itemClass = currentIndex
+                        app.current_item_classes.search = currentIndex
                         refresh()
                     }
                 }

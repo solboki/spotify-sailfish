@@ -187,6 +187,9 @@ Page {
 
             ComboBox {
                 id: navigation_menu_type
+                // replaced by the pull-down menu of each page
+                visible: false
+                enabled: false
                 label: qsTr("Navigation Menu Type")
 
                 menu: ContextMenu {
@@ -197,6 +200,8 @@ Page {
                 }
 
                 onCurrentIndexChanged: {
+                    if(!enabled)
+                        return
                     app.navigation_menu_type.value = currentIndex
                     app.navigation_menu_type.sync()
                 }

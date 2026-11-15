@@ -32,6 +32,10 @@ Page {
         id: listView
         model: searchModel
 
+        NavigationPullDown {
+            currentPage: "TopStuffPage"
+        }
+
         width: parent.width
         anchors.top: parent.top
         height: parent.height - app.dockedPanel.visibleSize
@@ -48,17 +52,24 @@ Page {
             PageHeader {
                 id: pHeader
                 width: parent.width
-                title: {
-                    switch(_itemClass) {
-                    case 0: return Util.createPageHeaderLabel(qsTr("Top "), qsTr("Tracks"), Theme)
-                    case 1: return Util.createPageHeaderLabel(qsTr("Top "), qsTr("Artists"), Theme)
-                    }
+                title: qsTr("My Top")
+            }
+
+            ComboBox {
+                id: itemClassBox
+                width: parent.width
+                label: qsTr("Show")
+                currentIndex: _itemClass
+                menu: ContextMenu {
+                    MenuItem { text: qsTr("Top Tracks") }
+                    MenuItem { text: qsTr("Top Artists") }
                 }
-                MenuButton { z: 1} // set z so you can still click the button
-                MouseArea {
-                    anchors.fill: parent
-                    propagateComposedEvents: true
-                    onClicked: nextItemClass()
+                onCurrentIndexChanged: {
+                    if(currentIndex >= 0 && currentIndex !== _itemClass) {
+                        _itemClass = currentIndex
+                        app.current_item_classes.topStuff = currentIndex
+                        refresh()
+                    }
                 }
             }
 

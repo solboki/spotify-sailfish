@@ -13,7 +13,8 @@ IconButton {
                  : "image://hutspot-icons/icon-m-toolbar"
 
     // show button only when not having a panel or menu is not an attached page
-    enabled: app.navigation_menu_type.value <= 1
+    // Navigation now uses the pull-down menu of each page (NavigationPullDown)
+    enabled: false
 
     visible: enabled
 

@@ -47,10 +47,10 @@ Page {
                 id: pHeader
                 width: parent.width
                 title: qsTr("History")
-                MenuButton {}
             }
 
-            PullDownMenu {
+            NavigationPullDown {
+                currentPage: "HistoryPage"
                 MenuItem {
                     text: qsTr("Clear History")
                     onClicked: app.clearHistory()

@@ -1427,10 +1427,10 @@ ApplicationWindow {
         args.push("Authorization: Bearer " + Spotify.getAccessToken())
         args.push("-H")
         args.push("Content-Type: application/json")
-        args.push(Spotify._baseUri + "/playlists/" + playlistId + "/tracks")
+        args.push(Spotify._baseUri + "/playlists/" + playlistId + "/items")
         args.push("--data")
 
-        var data = "{\"tracks\":["
+        var data = "{\"items\":["
         for(var i=0;i<uris.length;i++) {
             if(i>0)
                 data += ","
@@ -1708,6 +1708,10 @@ ApplicationWindow {
     }
 
     Component.onCompleted: {
+        // Navigation is done with the pull-down menu of each page, the
+        // docked panel at the bottom is the mini player (ControlPanel).
+        if(navigation_menu_type.value !== 3)
+            navigation_menu_type.value = 3
         loadFirstPage()
     }
 

@@ -57,7 +57,8 @@ Page {
             height: parent.height
             width: parent.width
 
-            PullDownMenu {
+            NavigationPullDown {
+                currentPage: "PlayingPage"
                 MenuItem {
                     text: qsTr("Scroll to current Track")
                     onClicked: {
