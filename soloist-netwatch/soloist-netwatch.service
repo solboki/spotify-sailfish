@@ -1,0 +1,11 @@
+[Unit]
+Description=Relance Spotify Soloist après un changement de réseau
+After=soloist.service
+
+[Service]
+ExecStart=%h/bin/soloist-netwatch.sh
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=post-user-session.target

@@ -43,7 +43,18 @@ systemctl --user daemon-reload && systemctl --user enable --now soloist
 
 Au premier lancement, sélectionnez « JollaPhone » une fois depuis l'application Spotify d'un autre appareil pour l'appairer.
 
-### 3. Hutspot
+### 3. Relance automatique après un changement de réseau
+
+Soloist ne rétablit pas lui-même sa connexion aux serveurs de Spotify quand le téléphone change de réseau (Wi-Fi vers données mobiles, autre Wi-Fi) ou perd internet quelques secondes : il disparaît alors de la liste des appareils. Le service `soloist-netwatch` surveille le réseau et relance Soloist une fois la connexion stable depuis 10 secondes.
+
+```
+tar xzf releases/soloist-netwatch-1.0.0.tar.gz && cd soloist-netwatch-1.0.0
+sh install.sh
+```
+
+Le journal des relances se trouve dans `~/.cache/soloist-netwatch.log`. Les délais se règlent dans `~/.config/soloist/netwatch.conf` (modèle : `netwatch.conf.example`).
+
+### 4. Hutspot
 
 Installez Hutspot depuis Chum, puis le module MPRIS nécessaire à son interface :
 
@@ -71,6 +82,7 @@ Le script sauvegarde les fichiers d'origine, installe l'interface et la traducti
 | Hutspot 0.9.0 | Ajout à la bibliothèque (étoile, appui long), toucher un titre le lit |
 | Hutspot 0.9.1 | Pochette sur l'écran de verrouillage (Amber MPRIS), notifications Sailfish |
 | soloist-audiores 1.2.0 | Lanceur, rôle audio `x-maemo`, interception du chargement de PulseAudio |
+| soloist-netwatch 1.0.0 | Relance de Soloist après un changement de réseau ou une coupure d'internet |
 
 L'archive `hutspot-rpm-0.7.0.tar.gz` contient un fichier de construction RPM, non utilisé : l'installation par script a été préférée.
 

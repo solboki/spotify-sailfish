@@ -1,0 +1,9 @@
+# Réglages de soloist-netwatch (copier dans ~/.config/soloist/netwatch.conf)
+# puis : systemctl --user restart soloist-netwatch
+
+# Secondes de réseau stable avant de relancer Soloist
+STABLE_DELAY=10
+# Secondes minimum entre deux relances
+MIN_GAP=30
+# Fréquence du test d'internet quand tout va bien (secondes)
+PROBE_ONLINE=30
