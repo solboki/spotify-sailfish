@@ -206,6 +206,10 @@ Item {
         // TODO: use playback queue to find out what happens next!
         // exciting!
         Spotify.skipToNext({}, function(error, data) {
+            if (error && (error.status === 404 || noSession)) {
+                resumeOnDevice(callback)
+                return
+            }
             if (callback)
                 callback(error, data)
             refreshPlaybackState()
@@ -214,6 +218,10 @@ Item {
 
     function previous(callback) {
         Spotify.skipToPrevious({}, function(error, data) {
+            if (error && (error.status === 404 || noSession)) {
+                resumeOnDevice(callback)
+                return
+            }
             if (callback)
                 callback(error, data)
             refreshPlaybackState()
@@ -221,7 +229,16 @@ Item {
     }
 
     function play(callback) {
+        if (noSession) {
+            resumeOnDevice(callback)
+            return
+        }
         Spotify.play({'device_id': getDeviceId()}, function(error, data) {
+            if (error && error.status === 404) {
+                // the session vanished (Soloist restarted after a network change)
+                resumeOnDevice(callback)
+                return
+            }
             if(!error) {
                 playbackState.is_playing = true;
                 if(_waitForPlaybackState)
@@ -236,6 +253,14 @@ Item {
 
     function pause(callback) {
         Spotify.pause({'device_id': getDeviceId()}, function(error, data) {
+            if (error && error.status === 404) {
+                // nothing is playing any more: show the real state
+                playbackState.is_playing = false
+                refreshPlaybackState()
+                if (callback)
+                    callback(null, data)
+                return
+            }
             if(!error) {
                 playbackState.is_playing = false;
                 if(_waitForPlaybackState)
@@ -292,7 +317,21 @@ Item {
                 return
             }
 
+            if (!error && !state) {
+                // HTTP 204: Spotify has no playback session any more,
+                // typically after Soloist was restarted. Stop pretending
+                // that the old track is still playing.
+                if (!noSession) {
+                    console.log("controller.refreshPlaybackState: no playback session")
+                    noSession = true
+                    playbackState.is_playing = false
+                    reloadDevices()
+                }
+                return
+            }
+
             if (state) {
+                noSession = false
                 playbackState.importState(state)
                 if (state.context && state.context.uri !== oldContextId) {
                     var cid = Util.getIdFromURI(playbackState.context.uri)
@@ -372,6 +411,43 @@ Item {
             // TODO: handle that
             app.showErrorMessage(error, qsTr("No device selected"))
         }
+    }
+
+    // true when Spotify reports no playback session at all (HTTP 204)
+    property bool noSession: false
+
+    // Restart playback after the session was lost: look the device up again
+    // (its id may have changed when Soloist restarted), transfer playback to
+    // it and let Spotify resume the last track.
+    function resumeOnDevice(callback) {
+        Spotify.getMyDevices(function(error, data) {
+            var id = getDeviceId()
+            var name = app.deviceName.value
+            if (data && data.devices) {
+                var found = null
+                for (var i = 0; i < data.devices.length; i++) {
+                    if (name && data.devices[i].name === name) { found = data.devices[i]; break }
+                    if (data.devices[i].id === id) found = data.devices[i]
+                }
+                if (found) {
+                    id = found.id
+                    app.deviceId.value = id
+                }
+            }
+            Spotify.transferMyPlayback([id], {'play': true}, function(error2, data2) {
+                if (!error2) {
+                    noSession = false
+                    playbackState.is_playing = true
+                    reloadDevices()
+                    // Spotify needs a moment before reporting the new session
+                    timer.setTimeout(function () { refreshPlaybackState() }, 1500)
+                } else if (!callback) {
+                    app.showErrorMessage(error2, qsTr("Play Failed"))
+                }
+                if (callback)
+                    callback(error2, data2)
+            })
+        })
     }
 
     function getDeviceId() {

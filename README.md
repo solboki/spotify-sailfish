@@ -48,7 +48,7 @@ Au premier lancement, sélectionnez « JollaPhone » une fois depuis l'applicati
 Soloist ne rétablit pas lui-même sa connexion aux serveurs de Spotify quand le téléphone change de réseau (Wi-Fi vers données mobiles, autre Wi-Fi) ou perd internet quelques secondes : il disparaît alors de la liste des appareils. Le service `soloist-netwatch` surveille le réseau et relance Soloist une fois la connexion stable depuis 10 secondes.
 
 ```
-tar xzf releases/soloist-netwatch-1.0.0.tar.gz && cd soloist-netwatch-1.0.0
+tar xzf releases/soloist-netwatch-1.0.1.tar.gz && cd soloist-netwatch-1.0.1
 sh install.sh
 ```
 
@@ -65,7 +65,7 @@ devel-su pkcon install mpris-qt5-qml-plugin
 Installez ensuite la dernière version du fork :
 
 ```
-tar xzf releases/hutspot-fork-0.9.1.tar.gz && cd hutspot-fork-0.9.1
+tar xzf releases/hutspot-fork-0.9.2.tar.gz && cd hutspot-fork-0.9.2
 devel-su sh install-hutspot-fork.sh
 ```
 
@@ -81,8 +81,10 @@ Le script sauvegarde les fichiers d'origine, installe l'interface et la traducti
 | Hutspot 0.8.0 | Podcasts et livres audio, cache de la liste des albums |
 | Hutspot 0.9.0 | Ajout à la bibliothèque (étoile, appui long), toucher un titre le lit |
 | Hutspot 0.9.1 | Pochette sur l'écran de verrouillage (Amber MPRIS), notifications Sailfish |
+| Hutspot 0.9.2 | Reprise de la lecture quand la session Spotify a disparu (relance de Soloist) |
 | soloist-audiores 1.2.0 | Lanceur, rôle audio `x-maemo`, interception du chargement de PulseAudio |
 | soloist-netwatch 1.0.0 | Relance de Soloist après un changement de réseau ou une coupure d'internet |
+| soloist-netwatch 1.0.1 | Test d'internet sans la commande `timeout`, absente de Sailfish OS |
 
 L'archive `hutspot-rpm-0.7.0.tar.gz` contient un fichier de construction RPM, non utilisé : l'installation par script a été préférée.
 
