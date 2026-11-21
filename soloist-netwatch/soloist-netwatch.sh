@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# soloist-netwatch 1.0.0
+# soloist-netwatch 1.0.1
 #
 # Relance Spotify Soloist quand le téléphone change de réseau ou retrouve
 # internet après une coupure. Soloist ne rétablit pas lui-même sa connexion
@@ -53,9 +53,23 @@ network_signature() {
 }
 
 # Internet joignable ? Une simple ouverture de connexion TCP, sans échange
-# de données (quelques centaines d'octets).
+# de données (quelques centaines d'octets). Sailfish OS ne fournit pas la
+# commande « timeout » : le test tourne en arrière-plan et il est abandonné
+# s'il dure plus de 5 secondes.
 internet_ok() {
-    timeout 5 bash -c "exec 3<>/dev/tcp/$PROBE_HOST/$PROBE_PORT" 2>/dev/null
+    local p i
+    ( exec 3<>"/dev/tcp/$PROBE_HOST/$PROBE_PORT" ) 2>/dev/null &
+    p=$!
+    for i in 1 2 3 4 5 6 7 8 9 10; do
+        if ! kill -0 "$p" 2>/dev/null; then
+            wait "$p"
+            return $?
+        fi
+        sleep 0.5
+    done
+    kill "$p" 2>/dev/null
+    wait "$p" 2>/dev/null
+    return 1
 }
 
 # PID principal de Soloist (le programme lui-même, pas son gestionnaire de
