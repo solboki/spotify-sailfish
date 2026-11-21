@@ -65,7 +65,7 @@ devel-su pkcon install mpris-qt5-qml-plugin
 Installez ensuite la dernière version du fork :
 
 ```
-tar xzf releases/hutspot-fork-0.9.2.tar.gz && cd hutspot-fork-0.9.2
+tar xzf releases/hutspot-fork-0.9.3.tar.gz && cd hutspot-fork-0.9.3
 devel-su sh install-hutspot-fork.sh
 ```
 
@@ -82,6 +82,7 @@ Le script sauvegarde les fichiers d'origine, installe l'interface et la traducti
 | Hutspot 0.9.0 | Ajout à la bibliothèque (étoile, appui long), toucher un titre le lit |
 | Hutspot 0.9.1 | Pochette sur l'écran de verrouillage (Amber MPRIS), notifications Sailfish |
 | Hutspot 0.9.2 | Reprise de la lecture quand la session Spotify a disparu (relance de Soloist) |
+| Hutspot 0.9.3 | JollaPhone reste dans la liste des appareils en données mobiles |
 | soloist-audiores 1.2.0 | Lanceur, rôle audio `x-maemo`, interception du chargement de PulseAudio |
 | soloist-netwatch 1.0.0 | Relance de Soloist après un changement de réseau ou une coupure d'internet |
 | soloist-netwatch 1.0.1 | Test d'internet sans la commande `timeout`, absente de Sailfish OS |
@@ -89,6 +90,8 @@ Le script sauvegarde les fichiers d'origine, installe l'interface et la traducti
 L'archive `hutspot-rpm-0.7.0.tar.gz` contient un fichier de construction RPM, non utilisé : l'installation par script a été préférée.
 
 ## Limites connues
+
+En données mobiles, la découverte locale (mDNS) est impossible : Spotify ne liste alors plus JollaPhone parmi les appareils, bien qu'il accepte toujours les commandes envoyées à son identifiant. Depuis la version 0.9.3, Hutspot rajoute lui-même dans la liste l'appareil choisi en dernier. Si cet appareil est un autre que le téléphone, il reste affiché même éteint.
 
 Spotify a fermé aux applications en mode développeur les nouveautés éditoriales, les catégories, les recommandations, la radio et le contenu des playlists dont on n'est pas propriétaire. La page « À la une » est reconstruite à partir de ce qui reste ouvert. L'identifiant d'application intégré à Hutspot est celui de son auteur d'origine, limité à cinq utilisateurs : il ne convient pas à une diffusion publique.
 
