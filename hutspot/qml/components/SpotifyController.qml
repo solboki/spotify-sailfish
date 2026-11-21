@@ -101,8 +101,35 @@ Item {
         id: tmpDevicesModel
     }
 
+    // The device chosen in Hutspot (JollaPhone, i.e. Soloist on this phone).
+    // Spotify lists a Connect device only while it is active or while an app
+    // on the same local network has discovered it by mDNS. On mobile data
+    // nobody can discover it, so Spotify leaves it out of the list although
+    // it still accepts commands sent to its id: add it back ourselves.
+    function _withSavedDevice(data) {
+        var id = app.deviceId.value
+        var name = app.deviceName.value
+        if (!data || !data.devices || !id || !name)
+            return data
+        for (var i = 0; i < data.devices.length; i++)
+            if (data.devices[i].id === id || data.devices[i].name === name)
+                return data
+        data.devices.push({
+            "id": id,
+            "is_active": false,
+            "is_private_session": false,
+            "is_restricted": false,
+            "name": name,
+            "supports_volume": true,
+            "type": "Smartphone",
+            "volume_percent": 100
+        })
+        return data
+    }
+
     function checkForNewDevices() {
         Spotify.getMyDevices(function(error, data) {
+            data = _withSavedDevice(data)
             if (data) {
                 try {
                     var i, j, added, removed, changed, found, device
@@ -174,6 +201,7 @@ Item {
 
     function reloadDevices() {
         Spotify.getMyDevices(function(error, data) {
+            data = _withSavedDevice(data)
             if (data) {
                 try {
                     console.log("controller.reloadDevices: #devices: " + data.devices.length)
