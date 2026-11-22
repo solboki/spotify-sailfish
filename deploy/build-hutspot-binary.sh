@@ -18,8 +18,12 @@ for p in gcc-c++ make qt5-qmake qt5-qtcore-devel qt5-qtnetwork-devel qt5-qtgui-d
 done
 if [ -n "$missing" ]; then
     echo "Installation de :$missing"
+    # zypper plutôt que pkcon : pkcon garde sa propre liste des paquets, parfois
+    # pas à jour (qt5-qtdeclarative-qtquick-devel « non trouvé »). En mode non
+    # interactif, zypper abandonne de lui-même si l'installation demande de
+    # désinstaller quoi que ce soit.
     # shellcheck disable=SC2086
-    devel-su pkcon -y install $missing
+    devel-su zypper --non-interactive install $missing
 fi
 
 echo "2/4 Préparation des sources"
