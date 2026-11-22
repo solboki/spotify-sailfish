@@ -4,12 +4,16 @@ X-Nemo-Application-Type=silica-qt5
 Icon=hutspot
 Exec=hutspot
 Name=hutspot
-# translation example:
-# your app name in German locale (de)
-#
-# Remember to comment out the following line, if you do not want to use
-# a different app name in German locale (de).
 Name[de]=hutspot
+# Audio player: Sailplay opens it as the music app of the car screen
+Categories=AudioVideo;Audio;Player;
+# Sailplay (car screen): "Browse" button of the Music card
+X-Sailplay-ApiVersion=1
+X-Sailplay-Service=org.solboki.Hutspot
+X-Sailplay-ObjectPath=/org/sailplay/v1/App
+X-Sailplay-Presentation=template
+X-Sailplay-Capabilities=content;
+X-Sailplay-BackgroundService=org.solboki.hutspot
 
 [X-Sailjail]
 Sandboxing=Disabled

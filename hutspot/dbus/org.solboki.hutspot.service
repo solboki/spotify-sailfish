@@ -1,0 +1,3 @@
+[D-BUS Service]
+Name=org.solboki.hutspot
+Exec=/usr/bin/invoker --type=silica-qt5 --single-instance /usr/bin/hutspot

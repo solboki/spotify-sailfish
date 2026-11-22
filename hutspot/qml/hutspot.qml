@@ -16,6 +16,7 @@ import org.hildon.components 1.0
 
 import "Spotify.js" as Spotify
 import "Util.js" as Util
+import "LibraryCache.js" as LibraryCache
 
 import "cover"
 import "pages"
@@ -1179,78 +1180,9 @@ ApplicationWindow {
     }
 
     //
-    // MediaKeys
+    // MediaKeys: see components/HeadsetKeys.qml (loaded below). On Sailfish
+    // the keys only arrive once the HeadsetButtons resource is reserved.
     //
-
-    // something like this needed as well?
-    /*property bool _grabKeys: keysResource.acquired
-    Permissions {
-        enabled: true
-        applicationClass: "player"
-
-        Resource {
-            id: keysResource
-            type: Resource.HeadsetButtons
-            optional: true
-        }
-    }*/
-
-    MediaKey {
-        enabled: true // _grabKeys
-        key: Qt.Key_MediaTogglePlayPause
-        onReleased: {
-            console.log("MediaKey: TogglePlayPause")
-            controller.playPause()
-        }
-    }
-    MediaKey {
-        enabled: true
-        key: Qt.Key_MediaPlay
-        onReleased: {
-            console.log("MediaKey: MediaPlay")
-            controller.play()
-        }
-    }
-    MediaKey {
-        enabled: true
-        key: Qt.Key_MediaPause
-        onReleased: {
-            console.log("MediaKey: MediaPause")
-            controller.pause()
-        }
-    }
-    MediaKey {
-        enabled: true
-        key: Qt.Key_ToggleCallHangup
-        onReleased: {
-            console.log("MediaKey: ToggleCallHangup")
-            controller.playPause()
-        }
-    }
-    MediaKey {
-        enabled: true
-        key: Qt.Key_MediaStop
-        onReleased: {
-            console.log("MediaKey: MediaStop")
-            controller.pause()
-        }
-    }
-    MediaKey {
-        enabled: true;
-        key: Qt.Key_MediaNext;
-        onReleased: {
-            console.log("MediaKey: MediaNext")
-            controller.next()
-        }
-    }
-    MediaKey {
-        enabled: true;
-        key: Qt.Key_MediaPrevious;
-        onReleased: {
-            console.log("MediaKey: MediaPrevious")
-            controller.previous()
-        }
-    }
 
     //
     // Configuration
@@ -1742,6 +1674,166 @@ ApplicationWindow {
                 spotifyDataCacheReady()
             }
         }
+    }
+
+    // --- Remote control from the car (Sailplay) ---------------------------
+
+    // A Spotify URI chosen on the car screen (MPRIS OpenUri). It is played as
+    // soon as the app has a valid token.
+    property string _remoteUri: ""
+    function playFromRemote(uri) {
+        if(!uri || uri.indexOf("spotify:") !== 0)
+            return
+        if(!hasValidToken) {
+            _remoteUri = uri
+            return
+        }
+        var type = uri.split(":")[1]
+        if(type === "track" || type === "episode" || type === "chapter")
+            controller.playTrack({uri: uri})
+        else
+            controller.playContext({uri: uri})
+    }
+    Connections {
+        target: app
+        onHasValidTokenChanged: {
+            if(app.hasValidToken && app._remoteUri !== "") {
+                var uri = app._remoteUri
+                app._remoteUri = ""
+                app.playFromRemote(uri)
+            }
+            if(app.hasValidToken)
+                carLibraryDelay.restart()
+        }
+    }
+
+    // Library summary for the "Browse" button of the car screen. The Sailplay
+    // service (python/sailplay_service.py) reads it from LocalStorage, so it
+    // works without a Spotify token of its own.
+    Timer {
+        id: carLibraryDelay
+        interval: 8000      // let the pages load first
+        onTriggered: refreshCarLibrary()
+    }
+    Timer {
+        interval: 6 * 3600 * 1000
+        repeat: true
+        running: hasValidToken
+        onTriggered: refreshCarLibrary()
+    }
+    onFavoriteEvent: carLibraryDelay.restart()
+
+    function _carItem(uri, title, subtitle) {
+        return {uri: uri, title: title ? title : "", subtitle: subtitle ? subtitle : ""}
+    }
+
+    function refreshCarLibrary() {
+        var lib = {playlists: [], albums: [], shows: [], audiobooks: [], recent: []}
+        var steps = [
+            function(next) {
+                Spotify.getUserPlaylists({limit: 50}, function(error, data) {
+                    if(data && data.items)
+                        for(var i=0;i<data.items.length;i++) {
+                            var p = data.items[i]
+                            if(p)
+                                lib.playlists.push(_carItem(p.uri, p.name,
+                                    p.owner && p.owner.display_name ? p.owner.display_name : ""))
+                        }
+                    next()
+                })
+            },
+            function(next) {
+                var push = function(list) {
+                    for(var i=0;i<list.length;i++) {
+                        var a = list[i].album
+                        if(a)
+                            lib.albums.push(_carItem(a.uri, a.name,
+                                a.artists && a.artists.length > 0 ? a.artists[0].name : ""))
+                    }
+                }
+                var cached = LibraryCache.savedAlbums()
+                if(cached) {
+                    push(cached)
+                    lib.albums.sort(function(x, y) { return x.title.localeCompare(y.title) })
+                    next()
+                    return
+                }
+                var all = []
+                var page = function(offset) {
+                    Spotify.getMySavedAlbums({offset: offset, limit: 50}, function(error, data) {
+                        if(data && data.items) {
+                            all = all.concat(data.items)
+                            if(data.items.length > 0 && all.length < data.total) {
+                                page(all.length)
+                                return
+                            }
+                            LibraryCache.setSavedAlbums(all)
+                        }
+                        push(all)
+                        lib.albums.sort(function(x, y) { return x.title.localeCompare(y.title) })
+                        next()
+                    })
+                }
+                page(0)
+            },
+            function(next) {
+                Spotify.getMySavedShows({limit: 50, market: "from_token"}, function(error, data) {
+                    if(data && data.items)
+                        for(var i=0;i<data.items.length;i++) {
+                            var sh = data.items[i] ? data.items[i].show : null
+                            if(sh)
+                                lib.shows.push(_carItem(sh.uri, sh.name, sh.publisher))
+                        }
+                    next()
+                })
+            },
+            function(next) {
+                Spotify.getMySavedAudiobooks({limit: 50, market: "from_token"}, function(error, data) {
+                    if(data && data.items)
+                        for(var i=0;i<data.items.length;i++) {
+                            var b = data.items[i] ? (data.items[i].audiobook ? data.items[i].audiobook : data.items[i]) : null
+                            if(b)
+                                lib.audiobooks.push(_carItem(b.uri, b.name,
+                                    b.authors ? Util.createItemsString(b.authors, "") : ""))
+                        }
+                    next()
+                })
+            },
+            function(next) {
+                Spotify.getMyRecentlyPlayedTracks({limit: 50}, function(error, data) {
+                    var seen = {}
+                    if(data && data.items)
+                        for(var i=0;i<data.items.length;i++) {
+                            var t = data.items[i] ? data.items[i].track : null
+                            if(t && !seen[t.uri]) {
+                                seen[t.uri] = true
+                                lib.recent.push(_carItem(t.uri, t.name,
+                                    t.artists ? Util.createItemsString(t.artists, "") : ""))
+                            }
+                        }
+                    next()
+                })
+            }
+        ]
+        var run = function(index) {
+            if(index >= steps.length) {
+                lib.updated = Date.now()
+                LibraryCache.setCarLibrary(lib)
+                return
+            }
+            steps[index](function() { run(index + 1) })
+        }
+        run(0)
+    }
+
+    Loader {  // D-Bus name of the app, lets Sailplay start it from the car
+        source: "components/DBusControl.qml"
+        onStatusChanged: if (status === Loader.Error) console.log("Nemo.DBus unavailable")
+    }
+
+    Loader {  // headset buttons (HeadsetButtons resource of Sailfish)
+        source: "components/HeadsetKeys.qml"
+        onStatusChanged: if (status === Loader.Error) console.log("Headset buttons unavailable")
     }
 
     Component.onCompleted: {

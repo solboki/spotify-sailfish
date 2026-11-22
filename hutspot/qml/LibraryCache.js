@@ -100,3 +100,17 @@ function invalidate() {
         console.log("LibraryCache: " + e)
     }
 }
+
+
+// Summary of the library for the "Browse" button of the car screen
+// (Sailplay). Read by python/sailplay_service.py.
+function setCarLibrary(lib) {
+    try {
+        _open().transaction(function(tx) {
+            tx.executeSql('INSERT OR REPLACE INTO kv VALUES(?, ?, ?)',
+                          ['car_library', JSON.stringify(lib), Date.now()])
+        })
+    } catch (e) {
+        console.log("LibraryCache: " + e)
+    }
+}
