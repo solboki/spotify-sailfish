@@ -100,6 +100,7 @@ TRANSLATIONS += translations/hutspot.ts \
     translations/hutspot-zh.ts
 
 HEADERS += \
+    src/networkfix.h \
     src/o2/o0abstractstore.h \
     src/o2/o0baseauth.h \
     src/o2/o0export.h \

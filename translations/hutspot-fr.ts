@@ -1665,67 +1665,77 @@
         <translation>connexion…</translation>
     </message>
     <message>
-        <location filename="../qml/hutspot.qml" line="385" />
+        <location filename="../qml/hutspot.qml" line="366" />
+        <source>Spotify error</source>
+        <translation>Erreur Spotify</translation>
+    </message>
+    <message>
+        <location filename="../qml/hutspot.qml" line="369" />
+        <source>Cannot reach Spotify: check the connection</source>
+        <translation>Spotify injoignable : vérifiez la connexion</translation>
+    </message>
+    <message>
+        <location filename="../qml/hutspot.qml" line="392" />
         <source>Failed to transfer to</source>
         <translation>Échec du transfert vers</translation>
     </message>
     <message>
-        <location filename="../qml/hutspot.qml" line="502" />
+        <location filename="../qml/hutspot.qml" line="509" />
         <source>Disconnected</source>
         <translation>Déconnecté</translation>
     </message>
     <message>
-        <location filename="../qml/hutspot.qml" line="514" />
+        <location filename="../qml/hutspot.qml" line="521" />
         <source>Connected</source>
         <translation>Connecté</translation>
     </message>
     <message>
-        <location filename="../qml/hutspot.qml" line="525" />
+        <location filename="../qml/hutspot.qml" line="532" />
         <source>Failed to Refresh Authorization Token</source>
         <translation>Échec du renouvellement de l'autorisation</translation>
     </message>
     <message>
-        <location filename="../qml/hutspot.qml" line="704" />
+        <location filename="../qml/hutspot.qml" line="711" />
         <source>Edit Playlist Details</source>
         <translation>Modifier la playlist</translation>
     </message>
     <message>
-        <location filename="../qml/hutspot.qml" line="731" />
+        <location filename="../qml/hutspot.qml" line="738" />
         <source>Select a Playlist</source>
         <translation>Choisir une playlist</translation>
     </message>
     <message>
-        <location filename="../qml/hutspot.qml" line="978" />
+        <location filename="../qml/hutspot.qml" line="985" />
         <source>Failed</source>
         <translation>Échec</translation>
     </message>
     <message>
-        <location filename="../qml/hutspot.qml" line="986" />
+        <location filename="../qml/hutspot.qml" line="993" />
         <source>Added to your library</source>
         <translation>Ajouté à votre bibliothèque</translation>
     </message>
     <message>
-        <location filename="../qml/hutspot.qml" line="987" />
+        <location filename="../qml/hutspot.qml" line="994" />
         <source>Removed from your library</source>
         <translation>Retiré de votre bibliothèque</translation>
     </message>
     <message>
-        <location filename="../qml/hutspot.qml" line="995" />
+        <location filename="../qml/hutspot.qml" line="1002" />
         <source>Remove from your library?</source>
         <translation>Retirer de votre bibliothèque ?</translation>
     </message>
     <message>
-        <location filename="../qml/hutspot.qml" line="1056" />
+        <location filename="../qml/hutspot.qml" line="1063" />
         <source>View an Artist</source>
         <translation>Voir un artiste</translation>
     </message>
     <message>
-        <location filename="../qml/hutspot.qml" line="1903" />
+        <location filename="../qml/hutspot.qml" line="1910" />
         <source>Lost Network Connection. Quit?</source>
         <translation>Connexion réseau perdue. Quitter ?</translation>
     </message>
     <message>
-        <location filename="../qml/hutspot.qml" line="1909" />
+        <location filename="../qml/hutspot.qml" line="1916" />
         <source>There seems to be no network connection. Quit?</source>
         <translation>Aucune connexion réseau. Quitter ?</translation>
     </message>

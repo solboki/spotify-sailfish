@@ -6,7 +6,7 @@
 
 Name:       hutspot
 Summary:    Spotify controller for Sailfish OS
-Version:    0.11.0
+Version:    0.12.0
 Release:    1.fork
 Group:      Applications/Multimedia
 License:    MIT

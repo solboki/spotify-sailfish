@@ -22,6 +22,7 @@
 #include "connect/spconnect.h"
 #include "qdeclarativeprocess.h"
 #include "systemutil.h"
+#include "networkfix.h"
 
 int main(int argc, char *argv[])
 {
@@ -46,6 +47,8 @@ int main(int argc, char *argv[])
 
     // custom icon loader
     QQmlEngine *engine = view->engine();
+    // network requests keep working after a network switch (see networkfix.h)
+    engine->setNetworkAccessManagerFactory(new NetworkFixFactory);
     engine->addImageProvider(QLatin1String("hutspot-icons"), new IconProvider);
 
     SPMDNS spMdns;
