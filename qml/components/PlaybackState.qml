@@ -10,31 +10,73 @@ import Sailfish.Silica 1.0
 
 import Amber.Mpris 1.0
 import "../Util.js" as Util
+import "../Spotify.js" as Spotify
 
 Item {   
     MprisPlayer {
         id: mprisPlayer
         serviceName: "hutspot"
-        playbackStatus: is_playing ? Mpris.Playing : Mpris.Paused
-
-        // shown by the media controls of the lock screen
+        // shown by the media controls of the lock screen and the car
         identity: "Spotify"
+        // lets remote controls (Sailplay car screen) recognise and start the app
+        desktopEntry: "hutspot"
+        // "open" a Spotify URI: used by the Sailplay service when an album,
+        // playlist, podcast... is chosen on the car screen (Browse button)
+        supportedUriSchemes: ["spotify"]
+        supportedMimeTypes: []
+
+        readonly property bool hasItem: item && item.duration_ms > 0
+
+        playbackStatus: is_playing ? Mpris.Playing : (hasItem ? Mpris.Paused : Mpris.Stopped)
 
         canControl: true
-
         canPause: true
         canPlay: true
         canGoNext: true
         canGoPrevious: true
+        canSeek: hasItem
 
-        canSeek: false
+        // Position in milliseconds (Amber converts for D-Bus), read on demand.
+        // The car reads it to draw its progress bar.
+        onPositionRequested: position = Math.max(0, progress_ms)
+        onSeekRequested: _seekTo(progress_ms + offset)
+        onSetPositionRequested: _seekTo(position)
 
-        onPauseRequested: app.controller.playPause()
+        onOpenUriRequested: app.playFromRemote("" + uri)
+
+        onPauseRequested: app.controller.pause()
         onPlayRequested: app.controller.play()
         onPlayPauseRequested: app.controller.playPause()
+        onStopRequested: app.controller.pause()
         onNextRequested: app.controller.next()
         onPreviousRequested: app.controller.previous()
     }
+
+    function _seekTo(target) {
+        if(!item || !item.duration_ms)
+            return
+        target = Math.round(Math.max(0, Math.min(target, item.duration_ms - 1000)))
+        Spotify.seek(target, {}, function(error, data) {
+            if(error)
+                return
+            progress_ms = target
+            mprisPlayer.seeked(target)
+        })
+    }
+
+    // Tell remote controls when the position jumps (seek from another
+    // device, from the Playing page...), as MPRIS requires.
+    property real _lastProgress: 0
+    property real _lastProgressTime: 0
+    onProgress_msChanged: {
+        var now = Date.now()
+        var expected = _lastProgress + (is_playing ? now - _lastProgressTime : 0)
+        if(_lastProgressTime > 0 && Math.abs(progress_ms - expected) > 3000)
+            mprisPlayer.seeked(progress_ms)
+        _lastProgress = progress_ms
+        _lastProgressTime = now
+    }
+
     onItemChanged: updateMetadata()
 
     // Metadata for the media controls (lock screen, notifications):

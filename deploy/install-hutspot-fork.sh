@@ -30,27 +30,22 @@ if [ -f "$HERE/translations/hutspot-fr.qm" ]; then
     echo "Traduction française installée."
 fi
 
-# 3. Bac à sable SailJail désactivé, sinon Hutspot ne peut pas
-#    enregistrer son jeton de connexion (~/.config/wdehoog/hutspot.conf)
-if ! grep -q "^Sandboxing=Disabled" "$DESKTOP"; then
-    if grep -q "^\[X-Sailjail\]" "$DESKTOP"; then
-        sed -i '/^\[X-Sailjail\]/a Sandboxing=Disabled' "$DESKTOP"
-    else
-        printf '\n[X-Sailjail]\nSandboxing=Disabled\n' >> "$DESKTOP"
-    fi
-    echo "SailJail désactivé pour Hutspot."
+# 3. Fichier .desktop du fork : bac à sable SailJail désactivé (sinon la
+#    connexion est oubliée), catégorie « lecteur audio » et déclaration
+#    Sailplay (écran de la voiture). L'original est sauvegardé une fois.
+if [ ! -f "$DESKTOP.orig" ]; then
+    cp "$DESKTOP" "$DESKTOP.orig"
 fi
+cp "$HERE/hutspot.desktop" "$DESKTOP"
+echo "Fichier .desktop installé."
 
-# 4. Soloist classé comme lecteur de musique pour PulseAudio :
-#    les boutons de volume du téléphone règlent alors son son.
-mkdir -p /etc/pulse/xpolicy.conf.d
-cat > /etc/pulse/xpolicy.conf.d/soloist.conf <<'POL'
-[stream]
-exe      = soloist
-group    = player
-POL
-echo "Règle PulseAudio pour Soloist installée."
+# 3 bis. Voiture (Sailplay) : service « Parcourir » et démarrage par D-Bus
+mkdir -p /usr/share/hutspot/python /usr/share/dbus-1/services
+cp "$HERE/python/sailplay_service.py" /usr/share/hutspot/python/
+cp "$HERE/dbus/org.solboki.Hutspot.service" "$HERE/dbus/org.solboki.hutspot.service" \
+   /usr/share/dbus-1/services/
+echo "Service Sailplay installé."
 
 echo
-echo "Terminé. En tant qu'utilisateur normal (sans devel-su), lancez :"
-echo "  systemctl --user restart pulseaudio && systemctl --user restart soloist"
+echo "Terminé."
+echo "  Fermez puis relancez Hutspot."
