@@ -69,7 +69,7 @@ tar xzf releases/hutspot-fork-0.9.3.tar.gz && cd hutspot-fork-0.9.3
 devel-su sh install-hutspot-fork.sh
 ```
 
-Le script sauvegarde les fichiers d'origine, installe l'interface et la traduction française, et désactive le bac à sable SailJail (sinon la connexion est redemandée à chaque lancement). `uninstall-hutspot-fork.sh` permet de revenir en arrière. Une mise à jour de Hutspot depuis Chum écrase le fork : il suffit alors de relancer le script.
+Le script sauvegarde les fichiers d'origine, installe l'interface et la traduction française, remplace le fichier `.desktop` (bac à sable SailJail désactivé, sinon la connexion est redemandée à chaque lancement ; déclaration de lecteur audio et de Sailplay), et installe le service « Parcourir » de l'écran de la voiture avec ses fichiers d'activation D-Bus. `uninstall-hutspot-fork.sh` permet de revenir en arrière. Une mise à jour de Hutspot depuis Chum écrase le fork : il suffit alors de relancer le script.
 
 ## Versions
 
@@ -81,6 +81,7 @@ Le script sauvegarde les fichiers d'origine, installe l'interface et la traducti
 | Hutspot 0.8.0 | Podcasts et livres audio, cache de la liste des albums |
 | Hutspot 0.9.0 | Ajout à la bibliothèque (étoile, appui long), toucher un titre le lit |
 | Hutspot 0.9.1 | Pochette sur l'écran de verrouillage (Amber MPRIS), notifications Sailfish |
+| Hutspot 0.10.0 | Écran de la voiture (Sailplay) : barre de progression et déplacement, bouton « Parcourir », démarrage depuis la voiture ; boutons des écouteurs |
 | Hutspot 0.9.2 | Reprise de la lecture quand la session Spotify a disparu (relance de Soloist) |
 | Hutspot 0.9.3 | JollaPhone reste dans la liste des appareils en données mobiles |
 | soloist-audiores 1.2.0 | Lanceur, rôle audio `x-maemo`, interception du chargement de PulseAudio |
