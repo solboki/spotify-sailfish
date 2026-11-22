@@ -46,6 +46,10 @@ Page {
 
             PageHeader { title: qsTr("Settings") }
 
+            SoloistSettings {}
+
+            SectionHeader { text: qsTr("Hutspot") }
+
             TextField {
                 id: searchLimit
                 label: qsTr("Number of results per request (limit)")

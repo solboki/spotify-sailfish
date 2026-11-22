@@ -46,6 +46,12 @@ cp "$HERE/dbus/org.solboki.Hutspot.service" "$HERE/dbus/org.solboki.hutspot.serv
    /usr/share/dbus-1/services/
 echo "Service Sailplay installé."
 
+# 3 ter. Scripts Soloist (réappairage, nouvelle clé), utilisés par les Réglages
+mkdir -p /usr/share/hutspot/scripts
+cp "$HERE"/scripts/soloist-*.sh /usr/share/hutspot/scripts/
+chmod 755 /usr/share/hutspot/scripts/soloist-*.sh
+echo "Scripts Soloist installés."
+
 echo
 echo "Terminé."
 echo "  Fermez puis relancez Hutspot."
