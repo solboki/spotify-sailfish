@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# soloist-netwatch 1.1.0
+# soloist-netwatch 1.2.0
 #
 # Relance Spotify Soloist quand le téléphone change de réseau ou retrouve
 # internet après une coupure. Soloist ne rétablit pas lui-même sa connexion
@@ -10,7 +10,7 @@
 # Trois signaux déclenchent une relance :
 #   1. la route par défaut change (Wi-Fi <-> données mobiles, autre Wi-Fi) ;
 #   2. internet revient après une coupure (petite connexion TCP de test) ;
-#   3. Soloist n'a plus aucune connexion ouverte vers internet.
+#   3. Soloist, connecté à un compte, n'a plus aucune connexion vers internet.
 # La relance n'a lieu qu'une fois le réseau stable depuis STABLE_DELAY
 # secondes, et jamais plus d'une fois toutes les MIN_GAP secondes.
 #
@@ -25,6 +25,7 @@ NO_SOCKET_DELAY=60     # relance si Soloist n'a plus de connexion depuis N s
 PROBE_HOST="apresolve.spotify.com"
 PROBE_PORT=443
 SERVICE="soloist"
+SOLOIST="$HOME/soloist/soloist"
 LOG="$HOME/.cache/soloist-netwatch.log"
 
 CONF="$HOME/.config/soloist/netwatch.conf"
@@ -88,6 +89,13 @@ soloist_connections() {
             if (index(list, " " $10 " ") > 0) n++
         }
         END { print n + 0 }'
+}
+
+# Soloist connecté à un compte Spotify ? Sans compte (en attente d'appairage),
+# il n'a aucune connexion vers internet, et il ne faut surtout pas le relancer :
+# cela interromprait l'appairage depuis une application Spotify.
+soloist_logged_in() {
+    "$SOLOIST" ctl status 2>/dev/null | grep -q "logged in: yes"
 }
 
 restart_soloist() {
@@ -156,7 +164,7 @@ while true; do
         if [ "$conns" -gt 0 ]; then
             seen_connected=1
             no_socket_since=""
-        elif [ -n "$pid" ] && [ "$seen_connected" = 1 ]; then
+        elif [ -n "$pid" ] && [ "$seen_connected" = 1 ] && soloist_logged_in; then
             [ -z "$no_socket_since" ] && no_socket_since=$t
             if [ $((t - no_socket_since)) -ge "$NO_SOCKET_DELAY" ]; then
                 pending="Soloist sans connexion"

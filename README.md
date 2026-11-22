@@ -38,7 +38,7 @@ sh install.sh
 systemctl --user enable soloist
 ```
 
-Au premier lancement, sélectionnez « JollaPhone » une fois depuis l'application Spotify d'un autre appareil pour l'appairer.
+Au premier lancement, sélectionnez « JollaPhone » une fois depuis l'application Spotify d'un autre appareil, sur le même Wi-Fi, pour l'appairer. Changer ou révoquer la clé Soloist annule la session : il faut alors appairer de nouveau. `~/soloist/soloist ctl status` indique `logged in: yes` quand la session est active.
 
 ### 3. Relance automatique après un changement de réseau
 
@@ -85,6 +85,7 @@ Le script sauvegarde les fichiers d'origine, installe l'interface et la traducti
 | soloist-netwatch 1.0.0 | Relance de Soloist après un changement de réseau ou une coupure d'internet |
 | soloist-audiores 2.0.0 | Relais avec les autres lecteurs (Audiobook, SailCast) : Soloist met en pause l'application qui jouait, et se met en pause quand une autre prend la main |
 | soloist-netwatch 1.1.0 | Ignore les commandes « soloist ctl » du lanceur |
+| soloist-netwatch 1.2.0 | Ne relance plus un Soloist déconnecté de son compte (en attente d'appairage) |
 | soloist-audiores 2.1.0 | Surveillance de PulseAudio : Soloist se met en pause quand un autre lecteur démarre, même si Sailfish ne signale pas la perte de la ressource ; journal dans `~/.cache/soloist-audiores.log` |
 | soloist-netwatch 1.0.1 | Test d'internet sans la commande `timeout`, absente de Sailfish OS |
 
