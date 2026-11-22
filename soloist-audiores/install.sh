@@ -1,5 +1,5 @@
 #!/bin/sh
-# Compile et installe soloist-audiores 2.0.0. A lancer en utilisateur normal.
+# Compile et installe soloist-audiores 2.1.0. A lancer en utilisateur normal.
 set -e
 HERE="$(cd "$(dirname "$0")" && pwd)"
 mkdir -p ~/bin ~/lib ~/.config/systemd/user

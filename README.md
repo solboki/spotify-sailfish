@@ -33,7 +33,7 @@ Sans ces deux pièces, les boutons de volume règlent la sonnerie au lieu de la 
 
 ```
 devel-su pkcon install gcc libresource-devel glib2-devel
-tar xzf releases/soloist-audiores-2.0.0.tar.gz && cd soloist-audiores-2.0.0
+tar xzf releases/soloist-audiores-2.1.0.tar.gz && cd soloist-audiores-2.1.0
 sh install.sh
 systemctl --user enable soloist
 ```
@@ -85,6 +85,7 @@ Le script sauvegarde les fichiers d'origine, installe l'interface et la traducti
 | soloist-netwatch 1.0.0 | Relance de Soloist après un changement de réseau ou une coupure d'internet |
 | soloist-audiores 2.0.0 | Relais avec les autres lecteurs (Audiobook, SailCast) : Soloist met en pause l'application qui jouait, et se met en pause quand une autre prend la main |
 | soloist-netwatch 1.1.0 | Ignore les commandes « soloist ctl » du lanceur |
+| soloist-audiores 2.1.0 | Surveillance de PulseAudio : Soloist se met en pause quand un autre lecteur démarre, même si Sailfish ne signale pas la perte de la ressource ; journal dans `~/.cache/soloist-audiores.log` |
 | soloist-netwatch 1.0.1 | Test d'internet sans la commande `timeout`, absente de Sailfish OS |
 
 L'archive `hutspot-rpm-0.7.0.tar.gz` contient un fichier de construction RPM, non utilisé : l'installation par script a été préférée.
