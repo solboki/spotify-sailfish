@@ -719,7 +719,7 @@
         <translation type="vanished">Télécommande Spotify simple</translation>
     </message>
     <message>
-        <location filename="../qml/components/PlaybackState.qml" line="62" />
+        <location filename="../qml/components/PlaybackState.qml" line="103" />
         <source>no artist known</source>
         <translation>artiste inconnu</translation>
     </message>
@@ -1242,161 +1242,166 @@
     </message>
     <message>
         <location filename="../qml/pages/Settings.qml" line="51" />
+        <source>Hutspot</source>
+        <translation>Hutspot</translation>
+    </message>
+    <message>
+        <location filename="../qml/pages/Settings.qml" line="55" />
         <source>Number of results per request (limit)</source>
         <translation>Nombre de résultats par requête (10 au maximum)</translation>
     </message>
     <message>
-        <location filename="../qml/pages/Settings.qml" line="60" />
+        <location filename="../qml/pages/Settings.qml" line="64" />
         <source>Maximum size of Search History</source>
         <translation>Taille maximale de l'historique de recherche</translation>
     </message>
     <message>
-        <location filename="../qml/pages/Settings.qml" line="69" />
+        <location filename="../qml/pages/Settings.qml" line="73" />
         <source>Enable Device Discovery</source>
         <translation>Activer la recherche des appareils</translation>
     </message>
     <message>
-        <location filename="../qml/pages/Settings.qml" line="70" />
+        <location filename="../qml/pages/Settings.qml" line="74" />
         <source>Discover Spotify Connect Devices on your network.</source>
         <translation>Rechercher les appareils Spotify Connect sur votre réseau.</translation>
     </message>
     <message>
-        <location filename="../qml/pages/Settings.qml" line="84" />
+        <location filename="../qml/pages/Settings.qml" line="88" />
         <source>Control Librespot</source>
         <translation>Piloter Librespot</translation>
     </message>
     <message>
-        <location filename="../qml/pages/Settings.qml" line="85" />
+        <location filename="../qml/pages/Settings.qml" line="89" />
         <source>Start Librespot when launched and stop it on exit</source>
         <translation>Démarrer Librespot à l'ouverture et l'arrêter à la fermeture</translation>
     </message>
     <message>
-        <location filename="../qml/pages/Settings.qml" line="97" />
+        <location filename="../qml/pages/Settings.qml" line="101" />
         <source>Cannot start Librespot</source>
         <translation>Impossible de démarrer Librespot</translation>
     </message>
     <message>
-        <location filename="../qml/pages/Settings.qml" line="100" />
+        <location filename="../qml/pages/Settings.qml" line="104" />
         <source>Stop Librespot</source>
         <translation>Arrêter Librespot</translation>
     </message>
     <message>
-        <location filename="../qml/pages/Settings.qml" line="101" />
+        <location filename="../qml/pages/Settings.qml" line="105" />
         <source>Start Librespot</source>
         <translation>Démarrer Librespot</translation>
     </message>
     <message>
-        <location filename="../qml/pages/Settings.qml" line="105" />
+        <location filename="../qml/pages/Settings.qml" line="109" />
         <source>Librespot is not available</source>
         <translation>Librespot n'est pas disponible</translation>
     </message>
     <message>
-        <location filename="../qml/pages/Settings.qml" line="108" />
+        <location filename="../qml/pages/Settings.qml" line="112" />
         <source>Running</source>
         <translation>En marche</translation>
     </message>
     <message>
-        <location filename="../qml/pages/Settings.qml" line="109" />
+        <location filename="../qml/pages/Settings.qml" line="113" />
         <source>Not Running</source>
         <translation>Arrêté</translation>
     </message>
     <message>
-        <location filename="../qml/pages/Settings.qml" line="124" />
+        <location filename="../qml/pages/Settings.qml" line="128" />
         <source>Show Devices page at startup</source>
         <translation>Afficher les appareils au démarrage</translation>
     </message>
     <message>
-        <location filename="../qml/pages/Settings.qml" line="125" />
+        <location filename="../qml/pages/Settings.qml" line="129" />
         <source>So you can watch the devices become available</source>
         <translation>Pour voir les appareils apparaître</translation>
     </message>
     <message>
-        <location filename="../qml/pages/Settings.qml" line="135" />
+        <location filename="../qml/pages/Settings.qml" line="139" />
         <source>Hutspot Queue Playlist name</source>
         <translation>Nom de la playlist servant de file d'attente</translation>
     </message>
     <message>
-        <location filename="../qml/pages/Settings.qml" line="146" />
+        <location filename="../qml/pages/Settings.qml" line="150" />
         <source>Country Code (2 characters)</source>
         <translation>Code pays (2 lettres)</translation>
     </message>
     <message>
-        <location filename="../qml/pages/Settings.qml" line="158" />
+        <location filename="../qml/pages/Settings.qml" line="162" />
         <source>Query for Market</source>
         <translation>Filtrer selon le pays</translation>
     </message>
     <message>
-        <location filename="../qml/pages/Settings.qml" line="159" />
+        <location filename="../qml/pages/Settings.qml" line="163" />
         <source>Show only content playable in the country associated with the user account</source>
         <translation>Ne montrer que les contenus disponibles dans le pays de votre compte</translation>
     </message>
     <message>
-        <location filename="../qml/pages/Settings.qml" line="172" />
+        <location filename="../qml/pages/Settings.qml" line="176" />
         <source>ControlPanel Show Delay</source>
         <translation>Délai d'affichage du mini-lecteur</translation>
     </message>
     <message>
-        <location filename="../qml/pages/Settings.qml" line="179" />
+        <location filename="../qml/pages/Settings.qml" line="183" />
         <source>Confirm Un-Save/Follow</source>
         <translation>Confirmer le retrait des favoris</translation>
     </message>
     <message>
-        <location filename="../qml/pages/Settings.qml" line="180" />
+        <location filename="../qml/pages/Settings.qml" line="184" />
         <source>Ask for confirmation for un-save and un-follow</source>
         <translation>Demander confirmation avant de retirer un favori ou de ne plus suivre</translation>
     </message>
     <message>
-        <location filename="../qml/pages/Settings.qml" line="193" />
+        <location filename="../qml/pages/Settings.qml" line="197" />
         <source>Navigation Menu Type</source>
         <translation>Type de menu de navigation</translation>
     </message>
     <message>
-        <location filename="../qml/pages/Settings.qml" line="196" />
+        <location filename="../qml/pages/Settings.qml" line="200" />
         <source>Page with List of Menu Items</source>
         <translation>Page avec la liste des menus</translation>
     </message>
     <message>
-        <location filename="../qml/pages/Settings.qml" line="197" />
+        <location filename="../qml/pages/Settings.qml" line="201" />
         <source>Menu Page attached to Playing Page</source>
         <translation>Page de menu à côté de la lecture en cours</translation>
     </message>
     <message>
-        <location filename="../qml/pages/Settings.qml" line="198" />
+        <location filename="../qml/pages/Settings.qml" line="202" />
         <source>Docked Panel with all Icons</source>
         <translation>Panneau du bas avec toutes les icônes</translation>
     </message>
     <message>
-        <location filename="../qml/pages/Settings.qml" line="199" />
+        <location filename="../qml/pages/Settings.qml" line="203" />
         <source>Docked Panel with Player Controls and Hamburger button</source>
         <translation>Panneau du bas avec commandes de lecture et menu</translation>
     </message>
     <message>
-        <location filename="../qml/pages/Settings.qml" line="212" />
+        <location filename="../qml/pages/Settings.qml" line="216" />
         <source>Playing as Attached Page</source>
         <translation>Lecture en cours à droite</translation>
     </message>
     <message>
-        <location filename="../qml/pages/Settings.qml" line="213" />
+        <location filename="../qml/pages/Settings.qml" line="217" />
         <source>Have the Playing page as an Attached Page (available on the Right)</source>
         <translation>Placer la page « Lecture en cours » à droite de chaque page</translation>
     </message>
     <message>
-        <location filename="../qml/pages/Settings.qml" line="223" />
+        <location filename="../qml/pages/Settings.qml" line="227" />
         <source>Handle Network Connection</source>
         <translation>Gérer la connexion réseau</translation>
     </message>
     <message>
-        <location filename="../qml/pages/Settings.qml" line="224" />
+        <location filename="../qml/pages/Settings.qml" line="228" />
         <source>Detect network connect/disconnect and act on it.</source>
         <translation>Détecter la connexion et la perte du réseau, et réagir en conséquence.</translation>
     </message>
     <message>
-        <location filename="../qml/pages/Settings.qml" line="234" />
+        <location filename="../qml/pages/Settings.qml" line="238" />
         <source>Authorize using Browser</source>
         <translation>S'autoriser avec le navigateur</translation>
     </message>
     <message>
-        <location filename="../qml/pages/Settings.qml" line="235" />
+        <location filename="../qml/pages/Settings.qml" line="239" />
         <source>Use external Browser to login at Spotify</source>
         <translation>Se connecter à Spotify avec le navigateur</translation>
     </message>
@@ -1490,6 +1495,114 @@
     </message>
 </context>
 <context>
+    <name>SoloistSettings</name>
+    <message>
+        <location filename="../qml/components/SoloistSettings.qml" line="26" />
+        <source>Player on the phone (Soloist)</source>
+        <translation>Lecteur du téléphone (Soloist)</translation>
+    </message>
+    <message>
+        <location filename="../qml/components/SoloistSettings.qml" line="36" />
+        <source>Connected to your Spotify account</source>
+        <translation>Connecté à votre compte Spotify</translation>
+    </message>
+    <message>
+        <location filename="../qml/components/SoloistSettings.qml" line="37" />
+        <source>Not paired: use Pair again</source>
+        <translation>Non appairé : utilisez « Réappairer »</translation>
+    </message>
+    <message>
+        <location filename="../qml/components/SoloistSettings.qml" line="38" />
+        <source>Soloist is not running</source>
+        <translation>Soloist n'est pas lancé</translation>
+    </message>
+    <message>
+        <location filename="../qml/components/SoloistSettings.qml" line="40" />
+        <source>Checking…</source>
+        <translation>Vérification…</translation>
+    </message>
+    <message>
+        <location filename="../qml/components/SoloistSettings.qml" line="63" />
+        <source>Pair again</source>
+        <translation>Réappairer</translation>
+    </message>
+    <message>
+        <location filename="../qml/components/SoloistSettings.qml" line="66" />
+        <source>Starting…</source>
+        <translation>Démarrage…</translation>
+    </message>
+    <message>
+        <location filename="../qml/components/SoloistSettings.qml" line="77" />
+        <source>Needed after a new key or if the phone no longer appears in Spotify. Then choose the phone in a Spotify app (computer, other phone) on the same Wi-Fi.</source>
+        <translation>Nécessaire après une nouvelle clé, ou si le téléphone n'apparaît plus dans Spotify. Choisissez ensuite le téléphone dans une application Spotify (ordinateur, autre téléphone) connectée au même Wi-Fi.</translation>
+    </message>
+    <message>
+        <location filename="../qml/components/SoloistSettings.qml" line="83" />
+        <source>New Soloist key</source>
+        <translation>Nouvelle clé Soloist</translation>
+    </message>
+    <message>
+        <location filename="../qml/components/SoloistSettings.qml" line="84" />
+        <source>New Soloist key (spak_…)</source>
+        <translation>Nouvelle clé Soloist (spak_…)</translation>
+    </message>
+    <message>
+        <location filename="../qml/components/SoloistSettings.qml" line="93" />
+        <source>Save the key</source>
+        <translation>Enregistrer la clé</translation>
+    </message>
+    <message>
+        <location filename="../qml/components/SoloistSettings.qml" line="101" />
+        <source>Saving the key and restarting Soloist…</source>
+        <translation>Enregistrement de la clé et redémarrage de Soloist…</translation>
+    </message>
+    <message>
+        <location filename="../qml/components/SoloistSettings.qml" line="131" />
+        <source>Choose “%1” in a Spotify app on the same Wi-Fi (3 minutes).</source>
+        <translation>Choisissez « %1 » dans une application Spotify connectée au même Wi-Fi (3 minutes).</translation>
+    </message>
+    <message>
+        <location filename="../qml/components/SoloistSettings.qml" line="142" />
+        <source>Paired. Soloist is connected.</source>
+        <translation>Appairage réussi. Soloist est connecté.</translation>
+    </message>
+    <message>
+        <location filename="../qml/components/SoloistSettings.qml" line="143" />
+        <source>No Spotify app chose the phone in time.</source>
+        <translation>Aucune application Spotify n'a choisi le téléphone à temps.</translation>
+    </message>
+    <message>
+        <location filename="../qml/components/SoloistSettings.qml" line="144" />
+        <source>Save a Soloist key first.</source>
+        <translation>Enregistrez d'abord une clé Soloist.</translation>
+    </message>
+    <message>
+        <location filename="../qml/components/SoloistSettings.qml" line="145" />
+        <source>Soloist could not be started.</source>
+        <translation>Soloist n'a pas pu être lancé.</translation>
+    </message>
+    <message>
+        <location filename="../qml/components/SoloistSettings.qml" line="146" />
+        <source>Key saved. Soloist is connected.</source>
+        <translation>Clé enregistrée. Soloist est connecté.</translation>
+    </message>
+    <message>
+        <location filename="../qml/components/SoloistSettings.qml" line="147" />
+        <source>Key saved. Now pair the phone again.</source>
+        <translation>Clé enregistrée. Réappairez maintenant le téléphone.</translation>
+    </message>
+    <message>
+        <location filename="../qml/components/SoloistSettings.qml" line="148" />
+        <source>This is not a Soloist key (it starts with spak_).</source>
+        <translation>Ce n'est pas une clé Soloist (elle commence par spak_).</translation>
+    </message>
+    <message>
+        <location filename="../qml/components/SoloistSettings.qml" line="149" />
+        <source>Key saved, but Soloist did not restart.</source>
+        <translation>Clé enregistrée, mais Soloist n'a pas redémarré.</translation>
+    </message>
+</context>
+<context>
     <name>SpotifyController</name>
     <message>
         <location filename="../qml/components/SpotifyController.qml" line="337" />
@@ -1547,72 +1660,72 @@
 <context>
     <name>hutspot</name>
     <message>
-        <location filename="../qml/hutspot.qml" line="94" />
+        <location filename="../qml/hutspot.qml" line="95" />
         <source>connecting</source>
         <translation>connexion…</translation>
     </message>
     <message>
-        <location filename="../qml/hutspot.qml" line="384" />
+        <location filename="../qml/hutspot.qml" line="385" />
         <source>Failed to transfer to</source>
         <translation>Échec du transfert vers</translation>
     </message>
     <message>
-        <location filename="../qml/hutspot.qml" line="501" />
+        <location filename="../qml/hutspot.qml" line="502" />
         <source>Disconnected</source>
         <translation>Déconnecté</translation>
     </message>
     <message>
-        <location filename="../qml/hutspot.qml" line="513" />
+        <location filename="../qml/hutspot.qml" line="514" />
         <source>Connected</source>
         <translation>Connecté</translation>
     </message>
     <message>
-        <location filename="../qml/hutspot.qml" line="524" />
+        <location filename="../qml/hutspot.qml" line="525" />
         <source>Failed to Refresh Authorization Token</source>
         <translation>Échec du renouvellement de l'autorisation</translation>
     </message>
     <message>
-        <location filename="../qml/hutspot.qml" line="703" />
+        <location filename="../qml/hutspot.qml" line="704" />
         <source>Edit Playlist Details</source>
         <translation>Modifier la playlist</translation>
     </message>
     <message>
-        <location filename="../qml/hutspot.qml" line="730" />
+        <location filename="../qml/hutspot.qml" line="731" />
         <source>Select a Playlist</source>
         <translation>Choisir une playlist</translation>
     </message>
     <message>
-        <location filename="../qml/hutspot.qml" line="977" />
+        <location filename="../qml/hutspot.qml" line="978" />
         <source>Failed</source>
         <translation>Échec</translation>
     </message>
     <message>
-        <location filename="../qml/hutspot.qml" line="985" />
+        <location filename="../qml/hutspot.qml" line="986" />
         <source>Added to your library</source>
         <translation>Ajouté à votre bibliothèque</translation>
     </message>
     <message>
-        <location filename="../qml/hutspot.qml" line="986" />
+        <location filename="../qml/hutspot.qml" line="987" />
         <source>Removed from your library</source>
         <translation>Retiré de votre bibliothèque</translation>
     </message>
     <message>
-        <location filename="../qml/hutspot.qml" line="994" />
+        <location filename="../qml/hutspot.qml" line="995" />
         <source>Remove from your library?</source>
         <translation>Retirer de votre bibliothèque ?</translation>
     </message>
     <message>
-        <location filename="../qml/hutspot.qml" line="1055" />
+        <location filename="../qml/hutspot.qml" line="1056" />
         <source>View an Artist</source>
         <translation>Voir un artiste</translation>
     </message>
     <message>
-        <location filename="../qml/hutspot.qml" line="1811" />
+        <location filename="../qml/hutspot.qml" line="1903" />
         <source>Lost Network Connection. Quit?</source>
         <translation>Connexion réseau perdue. Quitter ?</translation>
     </message>
     <message>
-        <location filename="../qml/hutspot.qml" line="1817" />
+        <location filename="../qml/hutspot.qml" line="1909" />
         <source>There seems to be no network connection. Quit?</source>
         <translation>Aucune connexion réseau. Quitter ?</translation>
     </message>
