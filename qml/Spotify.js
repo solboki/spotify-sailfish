@@ -66,9 +66,32 @@ function _buildUrl(url, parameters) {
   return url;
 }
 
+// Requests still waiting for an answer. After a network switch, a request
+// sent on the old network can stay unanswered for a long time; abortStale()
+// cancels it so that the next one goes out on the new network.
+var _pending = [];
+
+function abortStale(maxAgeMs) {
+  var now = Date.now();
+  var keep = [];
+  for (var i = 0; i < _pending.length; i++) {
+    var p = _pending[i];
+    if (p.req.readyState === 4)
+      continue;
+    if (now - p.started > maxAgeMs) {
+      console.log("_performRequest: no answer after " + (now - p.started) + " ms, aborting " + p.url);
+      try { p.req.abort(); } catch (e) {}
+    } else {
+      keep.push(p);
+    }
+  }
+  _pending = keep;
+}
+
 function _performRequest(requestData, callback) {
   var req = new XMLHttpRequest();
     var type = requestData.type || 'GET';
+    _pending.push({ req: req, started: Date.now(), url: requestData.url });
     req.open(type, _buildUrl(requestData.url, requestData.params));
     if (_accessToken) {
       req.setRequestHeader('Authorization', 'Bearer ' + _accessToken);

@@ -44,6 +44,10 @@ Item {
         property int refreshCount: 0
         repeat: true
         onTriggered: {
+            // a request unanswered for 12 s was probably sent on a network
+            // that no longer exists: cancel it
+            Spotify.abortStale(12000)
+
             // pretend progress (ms), refresh() will set the actual value
             if (playbackState.is_playing) {
                 if (playbackState.progress_ms < playbackState.item.duration_ms) {
@@ -58,7 +62,8 @@ Item {
                && (playbackState.item.duration_ms - playbackState.progress_ms) < 3000) {
                 refreshPlaybackState()
                 refreshCount = 0
-            } else if (++refreshCount >= 5) {
+            } else if (++refreshCount >= (_stateUnreachable ? 2 : 5)) {
+                // every 5 s normally, every 2 s while Spotify cannot be reached
                 refreshPlaybackState()
                 refreshCount = 0
             }
@@ -199,7 +204,7 @@ Item {
         handleRendererInfo.refreshCount = 0
         timer.setTimeout(function () {
             refreshPlaybackState();
-        }, 300)
+        }, 800)
     }
 
     function next(callback) {
@@ -221,38 +226,53 @@ Item {
     }
 
     function play(callback) {
-        Spotify.play({'device_id': getDeviceId()}, function(error, data) {
-            if(!error) {
-                playbackState.is_playing = true;
-                if(_waitForPlaybackState)
-                    _ignorePlaybackState = true
-            }
-            if (callback)
-                callback(error, data)
-            else if(error)
-                app.showErrorMessage(error, data)
-        })
+        _playOrPause(true, callback)
     }
 
     function pause(callback) {
-        Spotify.pause({'device_id': getDeviceId()}, function(error, data) {
-            if(!error) {
-                playbackState.is_playing = false;
-                if(_waitForPlaybackState)
-                    _ignorePlaybackState = true
-            }
-            if (callback)
-                callback(error, data)
-            else if(error)
-                app.showErrorMessage(error, data)
-        })
+        _playOrPause(false, callback)
     }
 
     function playPause(callback) {
-        if (playbackState.is_playing)
-            pause(callback);
-        else
-            play(callback);
+        _playOrPause(!playbackState.is_playing, callback)
+    }
+
+    // Spotify answers 403 ("restriction violated") when asked to pause what is
+    // already paused, or to play what is already playing. That happens when
+    // the state shown here is out of date, for instance after a network
+    // switch. In that case the wish is already fulfilled: refresh the state
+    // and only report an error if it really does not match.
+    function _playOrPause(wantPlaying, callback) {
+        var options = {'device_id': getDeviceId()}
+        var request = wantPlaying ? Spotify.play : Spotify.pause
+        _commandGeneration++
+        request(options, function(error, data) {
+            if (!error) {
+                playbackState.is_playing = wantPlaying
+                _commandGeneration++
+                delayedRefreshPlaybackState()
+                if (callback)
+                    callback(error, data)
+                return
+            }
+            if (error.status === 403) {
+                refreshPlaybackState(function(ok) {
+                    if (ok && playbackState.is_playing === wantPlaying) {
+                        if (callback)
+                            callback(null, data)
+                    } else if (callback) {
+                        callback(error, data)
+                    } else {
+                        app.showErrorMessage(error, data)
+                    }
+                })
+                return
+            }
+            if (callback)
+                callback(error, data)
+            else
+                app.showErrorMessage(error, data)
+        })
     }
 
     function setRepeat(value, callback) {
@@ -277,22 +297,40 @@ Item {
         })
     }
 
-    // this allows to check if a response is underway (with possibly outdated info)
-    property bool _waitForPlaybackState: false
-    property bool _ignorePlaybackState: false
+    // Increased by every play/pause command. A state answer requested before
+    // a command describes the situation before it, so it is ignored.
+    property int _commandGeneration: 0
+    // true while the last state request failed for lack of network
+    property bool _stateUnreachable: false
 
-    function refreshPlaybackState() {
-        _waitForPlaybackState = true
+    function refreshPlaybackState(done) {
+        var generation = _commandGeneration
         var oldContextId = playbackState.context ? playbackState.context.uri : undefined;
 
         Spotify.getMyCurrentPlaybackState({}, function (error, state) {
-            _waitForPlaybackState = false
-            if(_ignorePlaybackState) {
-                _ignorePlaybackState = false
+            if (error) {
+                if (!error.status)
+                    _stateUnreachable = true
+                if (done)
+                    done(false)
+                return
+            }
+            if (_stateUnreachable) {
+                // Spotify can be reached again: refresh the device list
+                // at once instead of waiting for the next check
+                _stateUnreachable = false
+                reloadDevices()
+            }
+            if (generation !== _commandGeneration) {
+                if (done)
+                    done(false)
                 return
             }
 
-            if (state) {
+            if (!state) {
+                // HTTP 204: nothing is playing on any device
+                playbackState.is_playing = false
+            } else {
                 playbackState.importState(state)
                 if (state.context && state.context.uri !== oldContextId) {
                     var cid = Util.getIdFromURI(playbackState.context.uri)
@@ -321,6 +359,8 @@ Item {
                     //playbackState.contextDetails = undefined
                 }
             }
+            if (done)
+                done(true)
         })
         //reloadDevices() Why is this here? The info is not used.
     }
