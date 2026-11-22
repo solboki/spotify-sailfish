@@ -8,7 +8,7 @@ Librespot n'est pas utilisé : Spotify refuse depuis 2025-2026 les clés de déc
 
 ## Contenu
 
-Le dossier `hutspot/` contient le code source du fork, avec tout l'historique du projet d'origine (licence MIT). Le dossier `soloist-audiores/` contient le lanceur de Soloist, la bibliothèque qui corrige son rôle audio et le fichier de service systemd. Le dossier `releases/` contient chaque version livrée, prête à installer.
+Le dossier `hutspot/` contient le code source du fork, avec tout l'historique du projet d'origine (licence MIT). Le dossier `soloist-audiores/` contient le lanceur de Soloist, la bibliothèque qui corrige son rôle audio et le fichier de service systemd. Le dossier `releases/` contient chaque version livrée, prête à installer. Le dossier `binaires/` contient la partie compilée de Hutspot, prête à copier sur le téléphone sans recompiler.
 
 ## Installation complète sur un téléphone neuf
 
@@ -62,11 +62,21 @@ devel-su pkcon install mpris-qt5-qml-plugin
 Installez ensuite la dernière version du fork :
 
 ```
-tar xzf releases/hutspot-fork-0.9.3.tar.gz && cd hutspot-fork-0.9.3
+tar xzf releases/hutspot-fork-0.12.1.tar.gz && cd hutspot-fork-0.12.1
 devel-su sh install-hutspot-fork.sh
 ```
 
 Le script sauvegarde les fichiers d'origine, installe l'interface et la traduction française, remplace le fichier `.desktop` (bac à sable SailJail désactivé, sinon la connexion est redemandée à chaque lancement ; déclaration de lecteur audio et de Sailplay), et installe le service « Parcourir » de l'écran de la voiture avec ses fichiers d'activation D-Bus. `uninstall-hutspot-fork.sh` permet de revenir en arrière. Une mise à jour de Hutspot depuis Chum écrase le fork : il suffit alors de relancer les deux scripts. `build-hutspot-binary.sh` compile la partie C++ de Hutspot sur le téléphone (quelques minutes) et remplace le programme du paquet Chum, sauvegardé dans `/usr/bin/hutspot.orig`.
+
+Pour éviter de recompiler, on peut installer directement le programme déjà compilé du dossier `binaires/`, après avoir vérifié qu'il n'a pas été abîmé pendant le transfert :
+
+```
+cd binaires && sha256sum -c SHA256SUMS
+devel-su cp /usr/bin/hutspot /usr/bin/hutspot.orig    # seulement la première fois
+devel-su install -m 755 hutspot-0.12.1-aarch64 /usr/bin/hutspot
+```
+
+Ce programme a été compilé le 22 novembre 2026 sur Sailfish OS 5, pour le Jolla Phone (processeur ARM 64 bits). Si une grande mise à jour de Sailfish change la version de Qt, il risque de ne plus démarrer : il faut alors recompiler avec `build-hutspot-binary.sh`.
 
 ## Versions
 
