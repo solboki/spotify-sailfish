@@ -8,6 +8,9 @@ rm -f /usr/share/hutspot/translations/hutspot-fr.qm
 if [ -f /usr/share/applications/hutspot.desktop.orig ]; then
     cp /usr/share/applications/hutspot.desktop.orig /usr/share/applications/hutspot.desktop
 fi
+if [ -f /usr/bin/hutspot.orig ]; then
+    cp /usr/bin/hutspot.orig /usr/bin/hutspot
+fi
 rm -rf /usr/share/hutspot/python /usr/share/hutspot/scripts
 rm -f /usr/share/dbus-1/services/org.solboki.Hutspot.service /usr/share/dbus-1/services/org.solboki.hutspot.service
 echo "Fichiers d'origine restaurés."

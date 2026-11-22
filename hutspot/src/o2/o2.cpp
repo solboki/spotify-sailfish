@@ -6,6 +6,7 @@
 #include <QNetworkRequest>
 #include <QNetworkReply>
 #include <QNetworkAccessManager>
+#include "../networkfix.h"
 #include <QDateTime>
 #include <QCryptographicHash>
 #include <QTimer>
@@ -69,6 +70,7 @@ static void addQueryParametersToUrl(QUrl &url,  QList<QPair<QString, QString> > 
 
 O2::O2(QObject *parent, QNetworkAccessManager *manager, O0AbstractStore *store): O0BaseAuth(parent, store) {
     manager_ = manager ? manager : new QNetworkAccessManager(this);
+    keepNetworkAccessible(manager_);   // see networkfix.h
     grantFlow_ = GrantFlowAuthorizationCode;
     localhostPolicy_ = QString(O2_CALLBACK_URL);
     qRegisterMetaType<QNetworkReply::NetworkError>("QNetworkReply::NetworkError");

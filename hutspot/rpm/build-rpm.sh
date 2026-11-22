@@ -2,7 +2,7 @@
 # Compile le RPM de Hutspot sur le téléphone.
 # Usage : sh build-rpm.sh   (en utilisateur normal, dans le dossier de l'archive)
 set -e
-V=0.11.0
+V=0.12.0
 HERE="$(cd "$(dirname "$0")" && pwd)"
 
 echo "1/3 Outils de compilation (mot de passe devel-su demandé)"

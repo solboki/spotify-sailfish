@@ -362,6 +362,13 @@ ApplicationWindow {
 
     function showErrorMessage(error, text) {
         var msg
+        if(!text)
+            text = qsTr("Spotify error")
+        if(error && error.status === 0) {
+            // no answer at all: no network, or the network has just changed
+            msgBox.showMessage(qsTr("Cannot reach Spotify: check the connection"), 3000)
+            return
+        }
         if(error) {
             if(error.hasOwnProperty('status') && error.hasOwnProperty('message'))
                 msg = text + ":" + error.status + ":" + error.message
