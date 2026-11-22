@@ -7,3 +7,8 @@ STABLE_DELAY=10
 MIN_GAP=30
 # Fréquence du test d'internet quand tout va bien (secondes)
 PROBE_ONLINE=30
+# Relance au plus tard N secondes après un changement de réseau, même si
+# le test d'internet échoue
+OFFLINE_FORCE=45
+# Relance quand Soloist a perdu sa session depuis N secondes
+LOGOUT_DELAY=20

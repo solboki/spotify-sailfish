@@ -86,6 +86,7 @@ Le script sauvegarde les fichiers d'origine, installe l'interface et la traducti
 | soloist-netwatch 1.0.0 | Relance de Soloist après un changement de réseau ou une coupure d'internet |
 | soloist-audiores 2.0.0 | Relais avec les autres lecteurs (Audiobook, SailCast) : Soloist met en pause l'application qui jouait, et se met en pause quand une autre prend la main |
 | soloist-netwatch 1.1.0 | Ignore les commandes « soloist ctl » du lanceur |
+| soloist-netwatch 1.3.0 | Relance aussi quand Soloist perd sa session ; relance au plus tard 45 s après un changement de réseau même si le test d'internet échoue ; test d'internet sur plusieurs serveurs |
 | soloist-netwatch 1.2.0 | Ne relance plus un Soloist déconnecté de son compte (en attente d'appairage) |
 | soloist-audiores 2.1.0 | Surveillance de PulseAudio : Soloist se met en pause quand un autre lecteur démarre, même si Sailfish ne signale pas la perte de la ressource ; journal dans `~/.cache/soloist-audiores.log` |
 | soloist-netwatch 1.0.1 | Test d'internet sans la commande `timeout`, absente de Sailfish OS |
