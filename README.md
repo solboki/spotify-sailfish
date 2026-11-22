@@ -38,7 +38,7 @@ sh install.sh
 systemctl --user enable soloist
 ```
 
-Au premier lancement, sélectionnez « JollaPhone » une fois depuis l'application Spotify d'un autre appareil, sur le même Wi-Fi, pour l'appairer. Changer ou révoquer la clé Soloist annule la session : il faut alors appairer de nouveau. `~/soloist/soloist ctl status` indique `logged in: yes` quand la session est active.
+Au premier lancement, sélectionnez « JollaPhone » une fois depuis l'application Spotify d'un autre appareil, sur le même Wi-Fi, pour l'appairer. Changer ou révoquer la clé Soloist annule la session : il faut alors appairer de nouveau. `~/soloist/soloist ctl status` indique `logged in: yes` quand la session est active. Le plus simple est d'utiliser les Réglages de Hutspot (section « Lecteur du téléphone »), ou depuis le terminal `/usr/share/hutspot/scripts/soloist-pair.sh` et `/usr/share/hutspot/scripts/soloist-setkey.sh`.
 
 ### 3. Relance automatique après un changement de réseau
 
@@ -78,6 +78,7 @@ Le script sauvegarde les fichiers d'origine, installe l'interface et la traducti
 | Hutspot 0.8.0 | Podcasts et livres audio, cache de la liste des albums |
 | Hutspot 0.9.0 | Ajout à la bibliothèque (étoile, appui long), toucher un titre le lit |
 | Hutspot 0.9.1 | Pochette sur l'écran de verrouillage (Amber MPRIS), notifications Sailfish |
+| Hutspot 0.11.0 | Réglages : état de Soloist, « Réappairer », nouvelle clé ; scripts `soloist-pair.sh` et `soloist-setkey.sh` |
 | Hutspot 0.10.0 | Écran de la voiture (Sailplay) : barre de progression et déplacement, bouton « Parcourir », démarrage depuis la voiture ; boutons des écouteurs |
 | Hutspot 0.9.2 | Reprise de la lecture quand la session Spotify a disparu (relance de Soloist) |
 | Hutspot 0.9.3 | JollaPhone reste dans la liste des appareils en données mobiles |
