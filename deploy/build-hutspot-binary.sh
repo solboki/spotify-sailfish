@@ -10,7 +10,8 @@ BUILD="$HOME/hutspot-build"
 
 echo "1/4 Outils de compilation"
 for p in gcc-c++ make qt5-qmake qt5-qtcore-devel qt5-qtnetwork-devel qt5-qtgui-devel \
-         qt5-qtdeclarative-devel libsailfishapp-devel openssl-devel qt5-qttools-linguist; do
+         qt5-qtdeclarative-devel qt5-qtdeclarative-qtquick-devel libsailfishapp-devel \
+         openssl-devel qt5-qttools-linguist; do
     if ! rpm -q "$p" >/dev/null 2>&1; then
         missing="$missing $p"
     fi
