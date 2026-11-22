@@ -29,16 +29,13 @@ chmod 600 ~/.config/soloist/env
 
 ### 2. Lanceur et correction du volume
 
-Sans ces deux pièces, les boutons de volume règlent la sonnerie au lieu de la musique. Le lanceur `soloist-audiores` réserve pour Soloist la ressource « lecture audio » auprès du gestionnaire de ressources de Sailfish. La bibliothèque `libforcerole` remplace le rôle `music` du flux de Soloist par `x-maemo`, le seul auquel s'applique le volume des boutons.
+Sans ces deux pièces, les boutons de volume règlent la sonnerie au lieu de la musique, et Soloist joue par-dessus les autres lecteurs. Le lanceur `soloist-audiores` suit l'état de lecture de Soloist par son interface locale (option `--ws`) : il réserve pour Soloist la ressource « lecture audio » auprès du gestionnaire de ressources de Sailfish dès que la musique démarre, la rend à la pause, et met Soloist en pause quand une autre application (ou un appel) prend la ressource. La bibliothèque `libforcerole` remplace le rôle `music` du flux de Soloist par `x-maemo`, le seul auquel s'applique le volume des boutons.
 
 ```
 devel-su pkcon install gcc libresource-devel glib2-devel
-cd soloist-audiores
-mkdir -p ~/bin ~/lib
-gcc -O2 -o ~/bin/soloist-audiores soloist-audiores.c $(pkg-config --cflags --libs libresource-glib glib-2.0)
-gcc -O2 -shared -fPIC -o ~/lib/libforcerole.so forcerole.c -ldl
-cp soloist.service ~/.config/systemd/user/soloist.service
-systemctl --user daemon-reload && systemctl --user enable --now soloist
+tar xzf releases/soloist-audiores-2.0.0.tar.gz && cd soloist-audiores-2.0.0
+sh install.sh
+systemctl --user enable soloist
 ```
 
 Au premier lancement, sélectionnez « JollaPhone » une fois depuis l'application Spotify d'un autre appareil pour l'appairer.
@@ -86,6 +83,8 @@ Le script sauvegarde les fichiers d'origine, installe l'interface et la traducti
 | Hutspot 0.9.3 | JollaPhone reste dans la liste des appareils en données mobiles |
 | soloist-audiores 1.2.0 | Lanceur, rôle audio `x-maemo`, interception du chargement de PulseAudio |
 | soloist-netwatch 1.0.0 | Relance de Soloist après un changement de réseau ou une coupure d'internet |
+| soloist-audiores 2.0.0 | Relais avec les autres lecteurs (Audiobook, SailCast) : Soloist met en pause l'application qui jouait, et se met en pause quand une autre prend la main |
+| soloist-netwatch 1.1.0 | Ignore les commandes « soloist ctl » du lanceur |
 | soloist-netwatch 1.0.1 | Test d'internet sans la commande `timeout`, absente de Sailfish OS |
 
 L'archive `hutspot-rpm-0.7.0.tar.gz` contient un fichier de construction RPM, non utilisé : l'installation par script a été préférée.

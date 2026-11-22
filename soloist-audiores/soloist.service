@@ -6,7 +6,9 @@ After=pulseaudio.service
 EnvironmentFile=%h/.config/soloist/env
 Environment=LD_PRELOAD=%h/lib/libforcerole.so
 Environment=PULSE_PROP_media.role=x-maemo
-ExecStart=%h/bin/soloist-audiores %h/soloist/soloist -n JollaPhone -k ${SOLOIST_API_KEY} -i 60 -z 500
+# --ws 127.0.0.1:0 : interface locale (port choisi par le système), utilisée
+# par soloist-audiores pour suivre la lecture et mettre Soloist en pause
+ExecStart=%h/bin/soloist-audiores %h/soloist/soloist -n JollaPhone -k ${SOLOIST_API_KEY} -i 60 -z 500 --ws 127.0.0.1:0
 Restart=on-failure
 RestartSec=5
 
