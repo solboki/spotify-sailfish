@@ -49,6 +49,7 @@ int main(int argc, char *argv[])
     QQmlEngine *engine = view->engine();
     // network requests keep working after a network switch (see networkfix.h)
     engine->setNetworkAccessManagerFactory(new NetworkFixFactory);
+    watchNetworkChanges();
     engine->addImageProvider(QLatin1String("hutspot-icons"), new IconProvider);
 
     SPMDNS spMdns;

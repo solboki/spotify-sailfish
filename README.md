@@ -79,6 +79,7 @@ Le script sauvegarde les fichiers d'origine, installe l'interface et la traducti
 | Hutspot 0.9.0 | Ajout à la bibliothèque (étoile, appui long), toucher un titre le lit |
 | Hutspot 0.9.1 | Pochette sur l'écran de verrouillage (Amber MPRIS), notifications Sailfish |
 | Hutspot 0.12.0 | Partie compilée corrigée : les requêtes réseau refonctionnent après un passage Wi-Fi / données mobiles (défaut de Qt 5) ; compilation sur le téléphone avec `build-hutspot-binary.sh` |
+| Hutspot 0.12.1 | Reprise plus rapide après un changement de réseau : Qt oublie les connexions de l'ancien réseau, les requêtes sans réponse depuis 12 s sont annulées, l'état de lecture est revérifié toutes les 2 s tant que Spotify est injoignable ; plus d'erreur 403 au premier appui quand l'état affiché était périmé ; le script de compilation installe avec zypper |
 | Hutspot 0.11.0 | Réglages : état de Soloist, « Réappairer », nouvelle clé ; scripts `soloist-pair.sh` et `soloist-setkey.sh` |
 | Hutspot 0.10.0 | Écran de la voiture (Sailplay) : barre de progression et déplacement, bouton « Parcourir », démarrage depuis la voiture ; boutons des écouteurs |
 | Hutspot 0.9.2 | Reprise de la lecture quand la session Spotify a disparu (relance de Soloist) |
