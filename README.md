@@ -1,35 +1,90 @@
-# Spotify natif sur Sailfish OS (Jolla Phone)
+*English | [Français](README.fr.md)*
 
-Dépôt privé, à usage personnel. Il rassemble tout ce qui permet d'écouter Spotify en natif sur le Jolla Phone, sans l'application Android.
+# Native Spotify on Sailfish OS (Jolla Phone)
 
-Le montage repose sur deux pièces. Spotify Soloist, le lecteur officiel de Spotify pour Linux, joue la musique sur le téléphone et apparaît comme un appareil Spotify Connect. Hutspot, une application Sailfish libre, sert de télécommande. Sa version d'origine ne fonctionnait plus avec l'API de Spotify de 2026 : ce dépôt contient un fork adapté.
+A personal project, shared for testing. It gathers everything needed to listen to Spotify natively on a Jolla Phone, without the Android app, and to browse the library from a car screen through [Sailplay](https://github.com/0312birdzhang/harbour-sailplay).
 
-Librespot n'est pas utilisé : Spotify refuse depuis 2025-2026 les clés de déchiffrement aux comptes récents (erreur `audio key 0 1`), et aucun contournement n'existe.
+Two pieces do the work:
 
-## Contenu
+- **Spotify Soloist**, the official Spotify player for Linux, plays the music on the phone and shows up as a Spotify Connect device.
+- **Hutspot**, a free Sailfish application, is the remote control. Its original version no longer worked with the 2026 Spotify API; this repository contains an adapted fork.
 
-Le dossier `hutspot/` contient le code source du fork, avec tout l'historique du projet d'origine (licence MIT). Le dossier `soloist-audiores/` contient le lanceur de Soloist, la bibliothèque qui corrige son rôle audio et le fichier de service systemd. Le dossier `releases/` contient chaque version livrée, prête à installer. Le dossier `binaires/` contient la partie compilée de Hutspot, prête à copier sur le téléphone sans recompiler.
+Librespot is not used: since 2025-2026 Spotify refuses decryption keys to recent accounts (error `audio key 0 1`), and there is no workaround.
 
-## Installation complète sur un téléphone neuf
+## Before you try it
 
-### 1. Soloist
+- A **Spotify Premium** account is required (Soloist and the playback API need it).
+- **Soloist is not included.** It is proprietary and must be downloaded from Spotify. Each build stops working 90 days after it was compiled.
+- **The Spotify application ID built into Hutspot belongs to its original author and is limited to five users.** Someone outside that list can most likely not log in to Hutspot. The code, the car service and the D-Bus interface can still be read and reviewed without logging in; see [Sailplay integration](#sailplay-integration-car-screen).
+- Everything was built and tested on one device: a Jolla Phone (aarch64) with Sailfish OS 5.
 
-Soloist ne doit pas être redistribué : il se télécharge chez Spotify. Chaque version n'est utilisable que 90 jours après sa compilation. Si Spotify cesse de jouer, retéléchargez d'abord Soloist.
+## What is in this repository
 
-Créez une clé d'API Soloist sur le tableau de bord Spotify for Developers (compte Premium), puis téléchargez `soloist_release_arm64.tar.gz` depuis la page « Downloads and updates » de la documentation Soloist.
+| Folder | Content |
+|---|---|
+| `hutspot/` | Source code of the fork, with the full history of the original project (MIT licence) |
+| `soloist-audiores/` | Companion program: Soloist launcher, audio-role fix, systemd service file |
+| `soloist-netwatch/` | Companion program: restarts Soloist after a network change |
+| `releases/` | Every delivered version, ready to install |
+| `binaires/` | The compiled part of Hutspot, ready to copy to the phone without recompiling |
+
+## Full installation on a fresh phone
+
+### 1. Create a Soloist key and download Soloist
+
+1. Sign in to Spotify for Developers (developer.spotify.com) with the Premium account.
+2. Create a **Soloist API key**, following the Soloist documentation there. The key starts with `spak_`. Keep it for step 4.
+3. Download `soloist_release_arm64.tar.gz` from the "Downloads and updates" page of the Soloist documentation and copy it to the phone.
+
+Then, in a terminal on the phone:
 
 ```
 devel-su pkcon install libatomic
 mkdir -p ~/soloist && tar -xzf soloist_release_arm64.tar.gz -C ~/soloist
-mkdir -p ~/.config/soloist
-read -rs -p "Clé Soloist : " KEY && echo
-printf 'SOLOIST_API_KEY=%s\n' "$KEY" > ~/.config/soloist/env && unset KEY
-chmod 600 ~/.config/soloist/env
 ```
 
-### 2. Lanceur et correction du volume
+If Spotify stops playing one day, download Soloist again first (90-day limit).
 
-Sans ces deux pièces, les boutons de volume règlent la sonnerie au lieu de la musique, et Soloist joue par-dessus les autres lecteurs. Le lanceur `soloist-audiores` suit l'état de lecture de Soloist par son interface locale (option `--ws`) : il réserve pour Soloist la ressource « lecture audio » auprès du gestionnaire de ressources de Sailfish dès que la musique démarre, la rend à la pause, et met Soloist en pause quand une autre application (ou un appel) prend la ressource. La bibliothèque `libforcerole` remplace le rôle `music` du flux de Soloist par `x-maemo`, le seul auquel s'applique le volume des boutons.
+### 2. Install Hutspot and the fork
+
+Install Hutspot from Chum, then the MPRIS module its interface needs:
+
+```
+devel-su pkcon install mpris-qt5-qml-plugin
+```
+
+Then install the latest version of the fork:
+
+```
+tar xzf releases/hutspot-fork-0.14.0.tar.gz && cd hutspot-fork-0.14.0
+devel-su sh install-hutspot-fork.sh
+```
+
+The script backs up the original files, then installs:
+
+- the interface (QML) and the French translation;
+- a replacement `.desktop` file: SailJail sandbox disabled (otherwise the login is asked again at every start), audio-player category, Sailplay declaration;
+- the "Browse" service for the car screen, with its D-Bus activation files;
+- the Soloist scripts used by the Settings page (`/usr/share/hutspot/scripts/`).
+
+`uninstall-hutspot-fork.sh` reverts everything. A Hutspot update from Chum overwrites the fork: run the install script again.
+
+The fork also needs its own compiled program (network fixes, session handling). Either copy the one from `binaires/`, after checking it was not damaged in transfer:
+
+```
+cd binaires && sha256sum -c SHA256SUMS
+devel-su cp /usr/bin/hutspot /usr/bin/hutspot.orig    # first time only
+devel-su install -m 755 hutspot-0.13.0-aarch64 /usr/bin/hutspot
+```
+
+or compile it on the phone (a few minutes) with `build-hutspot-binary.sh` from the release folder. The program in `binaires/` was compiled in November 2026 on Sailfish OS 5 for the Jolla Phone (64-bit ARM). If a major Sailfish update changes the Qt version it may no longer start: recompile it.
+
+### 3. Install the launcher and the volume fix (`soloist-audiores`)
+
+Without it, the volume keys set the ringtone instead of the music, and Soloist plays over other players.
+
+- The launcher `soloist-audiores` follows Soloist's playback state through its local interface (`--ws` option). It reserves the "audio playback" resource from the Sailfish resource manager when music starts, releases it on pause, and pauses Soloist when another application (or a call) takes the resource.
+- The library `libforcerole` replaces the `music` role of Soloist's audio stream with `x-maemo`, the only role the volume keys apply to.
 
 ```
 devel-su pkcon install gcc libresource-devel glib2-devel
@@ -38,81 +93,150 @@ sh install.sh
 systemctl --user enable soloist
 ```
 
-Au premier lancement, sélectionnez « JollaPhone » une fois depuis l'application Spotify d'un autre appareil, sur le même Wi-Fi, pour l'appairer. Changer ou révoquer la clé Soloist annule la session : il faut alors appairer de nouveau. `~/soloist/soloist ctl status` indique `logged in: yes` quand la session est active. Le plus simple est d'utiliser les Réglages de Hutspot (section « Lecteur du téléphone »), ou depuis le terminal `/usr/share/hutspot/scripts/soloist-pair.sh` et `/usr/share/hutspot/scripts/soloist-setkey.sh`.
+The installer ends by printing the state of the `soloist` service. If it is not `active` at this point, continue: the key is only saved in the next step. The launcher's log is `~/.cache/soloist-audiores.log`.
 
-### 3. Relance automatique après un changement de réseau
+### 4. Enter the Soloist key in Hutspot
 
-Soloist ne rétablit pas lui-même sa connexion aux serveurs de Spotify quand le téléphone change de réseau (Wi-Fi vers données mobiles, autre Wi-Fi) ou perd internet quelques secondes : il disparaît alors de la liste des appareils. Le service `soloist-netwatch` surveille le réseau et relance Soloist une fois la connexion stable depuis 10 secondes.
+1. Open Hutspot, then **Settings**, section **Player on the phone (Soloist)**.
+2. Paste the key in **New Soloist key** and tap **Save the key**. Hutspot stores it in `~/.config/soloist/env` (readable by the user only) and restarts Soloist.
+3. The status line then reads either "Connected to your Spotify account" or "Not paired: use Pair again".
+
+The same can be done from a terminal; the key is asked without being displayed:
 
 ```
-tar xzf releases/soloist-netwatch-1.0.1.tar.gz && cd soloist-netwatch-1.0.1
+/usr/share/hutspot/scripts/soloist-setkey.sh
+```
+
+### 5. Pair the phone with the Spotify account
+
+1. In the same Settings section, tap **Pair again**.
+2. Within three minutes, open a Spotify app on another device (computer, other phone) **on the same Wi-Fi** and choose the device "JollaPhone".
+3. Hutspot shows "Paired. Soloist is connected."
+
+Terminal equivalent: `/usr/share/hutspot/scripts/soloist-pair.sh`. To check the session: `~/soloist/soloist ctl status` shows `logged in: yes`.
+
+Changing or revoking the key cancels the session: pair again afterwards.
+
+Finally, log in to the Spotify account in Hutspot itself (see the five-user limit above) and choose "JollaPhone" on its Devices page.
+
+### 6. Automatic restart after a network change (`soloist-netwatch`)
+
+Soloist does not restore its connection to Spotify's servers when the phone changes network (Wi-Fi to mobile data, another Wi-Fi) or loses internet for a few seconds: it then disappears from the device list. The `soloist-netwatch` service watches the network and restarts Soloist once the connection is stable. It also restarts Soloist when it loses its session, and leaves it alone while it waits for pairing.
+
+```
+tar xzf releases/soloist-netwatch-1.3.0.tar.gz && cd soloist-netwatch-1.3.0
 sh install.sh
 ```
 
-Le journal des relances se trouve dans `~/.cache/soloist-netwatch.log`. Les délais se règlent dans `~/.config/soloist/netwatch.conf` (modèle : `netwatch.conf.example`).
+The restart log is `~/.cache/soloist-netwatch.log`. Delays are set in `~/.config/soloist/netwatch.conf` (template: `netwatch.conf.example`).
 
-### 4. Hutspot
+## Sailplay integration (car screen)
 
-Installez Hutspot depuis Chum, puis le module MPRIS nécessaire à son interface :
+This section is for the Sailplay developer and anyone adapting another music application.
 
-```
-devel-su pkcon install mpris-qt5-qml-plugin
-```
+### What the fork does
 
-Installez ensuite la dernière version du fork :
+- **Playback on the car screen.** Hutspot exposes an MPRIS player (`hutspot/qml/components/PlaybackState.qml`): title, cover, progress bar, seeking, previous / play-pause / next.
+- **"Browse" page.** A separate service, `hutspot/python/sailplay_service.py`, answers Sailplay's `content.browse` requests using the Sailplay SDK from `/opt/sailplay`. Without Sailplay installed the service does not start and Hutspot works as before.
 
-```
-tar xzf releases/hutspot-fork-0.14.0.tar.gz && cd hutspot-fork-0.14.0
-devel-su sh install-hutspot-fork.sh
-```
+### Declaration
 
-Le script sauvegarde les fichiers d'origine, installe l'interface et la traduction française, remplace le fichier `.desktop` (bac à sable SailJail désactivé, sinon la connexion est redemandée à chaque lancement ; déclaration de lecteur audio et de Sailplay), et installe le service « Parcourir » de l'écran de la voiture avec ses fichiers d'activation D-Bus. `uninstall-hutspot-fork.sh` permet de revenir en arrière. Une mise à jour de Hutspot depuis Chum écrase le fork : il suffit alors de relancer les deux scripts. `build-hutspot-binary.sh` compile la partie C++ de Hutspot sur le téléphone (quelques minutes) et remplace le programme du paquet Chum, sauvegardé dans `/usr/bin/hutspot.orig`.
-
-Pour éviter de recompiler, on peut installer directement le programme déjà compilé du dossier `binaires/`, après avoir vérifié qu'il n'a pas été abîmé pendant le transfert :
+The `.desktop` file of the fork (in each release archive) declares:
 
 ```
-cd binaires && sha256sum -c SHA256SUMS
-devel-su cp /usr/bin/hutspot /usr/bin/hutspot.orig    # seulement la première fois
-devel-su install -m 755 hutspot-0.13.0-aarch64 /usr/bin/hutspot
+Categories=AudioVideo;Audio;Player;
+X-Sailplay-ApiVersion=1
+X-Sailplay-Service=org.solboki.Hutspot
+X-Sailplay-ObjectPath=/org/sailplay/v1/App
+X-Sailplay-Presentation=template
+X-Sailplay-Capabilities=content;
+X-Sailplay-BackgroundService=org.solboki.hutspot
 ```
 
-Ce programme a été compilé le 22 novembre 2026 sur Sailfish OS 5, pour le Jolla Phone (processeur ARM 64 bits). Si une grande mise à jour de Sailfish change la version de Qt, il risque de ne plus démarrer : il faut alors recompiler avec `build-hutspot-binary.sh`.
+Two D-Bus activation files are installed in `/usr/share/dbus-1/services/`:
+
+| Bus name | Started program | Role |
+|---|---|---|
+| `org.solboki.Hutspot` | `python3 /usr/share/hutspot/python/sailplay_service.py` | Content service for Sailplay; stops after ten idle seconds |
+| `org.solboki.hutspot` | `/usr/bin/hutspot` (single instance) | The application itself, started from the car when needed |
+
+### The "Browse" page
+
+It uses the music arrangement of the presentation hints proposed in [harbour-sailplay pull request #9](https://github.com/0312birdzhang/harbour-sailplay/pull/9):
+
+```
+root          tabs=true, side="queue"   Playlists, Albums, Podcasts, Audiobooks, Recent
+  Albums      cards with cover          one album per card
+    <album>   list                      first row plays the whole album;
+                                        a track adds itself to the play queue
+  queue       side panel (right)        play queue, current track marked "playing",
+                                        options Shuffle and Repeat
+```
+
+With a Sailplay that does not know the hints (the official one today), the service detects it at import time and the same pages are shown as plain lists.
+
+After each action that changes the queue or an option, the service raises the `version` of the root page and publishes it again, so that Sailplay reloads the side panel.
+
+### Where the data comes from, and where the token stays
+
+- Tabs and cards come from a summary of the library that Hutspot keeps in its LocalStorage database (key `car_library`). They appear at once, even without network.
+- Tracks, the queue and the options are asked to the running Hutspot over D-Bus: method `request(id, method, path, body)` and signal `reply(id, status, body)` on interface `org.solboki.HutspotApp`, object `/app`, bus name `org.solboki.hutspot` (`hutspot/qml/components/DBusControl.qml`).
+- Hutspot alone holds the Spotify session and renews it. **The car service never sees a token.**
+- Hutspot only accepts a closed list of requests (`carRoutes` in `DBusControl.qml`): tracks of an album, items of a playlist, episodes of a show, reading the player and the queue, adding a track or episode to the queue, next, shuffle, repeat. Anything else is refused.
+
+### Test status
+
+Used in a car on 25 November 2026 (Fiat Scudo 2024, wireless CarPlay) with a Sailplay test build that includes the presentation hints: tabs, cards, adding tracks to the queue, Shuffle and Repeat all worked.
+
+The service can also be exercised without a car and without a Spotify account: a stub application answering on another bus name, a fake Spotify HTTP server, and the service started with the environment variables `HUTSPOT_APP_SERVICE` and `HUTSPOT_CAR_SERVICE` set to test names, the host being simulated with `sailplay_sdk.content.ContentClient`.
 
 ## Versions
 
-| Version | Contenu |
+### Hutspot fork
+
+| Version | Content |
 |---|---|
-| Hutspot 0.5.1 | Adaptation à l'API Spotify de février 2026 |
-| Hutspot 0.6.0 | Interface en français, menu déroulant Sailfish, mini-lecteur |
-| Hutspot 0.7.0 | Page « À la une », tri des albums (titre, artiste, genre, date) |
-| Hutspot 0.8.0 | Podcasts et livres audio, cache de la liste des albums |
-| Hutspot 0.9.0 | Ajout à la bibliothèque (étoile, appui long), toucher un titre le lit |
-| Hutspot 0.9.1 | Pochette sur l'écran de verrouillage (Amber MPRIS), notifications Sailfish |
-| Hutspot 0.12.0 | Partie compilée corrigée : les requêtes réseau refonctionnent après un passage Wi-Fi / données mobiles (défaut de Qt 5) ; compilation sur le téléphone avec `build-hutspot-binary.sh` |
-| Hutspot 0.12.1 | Reprise plus rapide après un changement de réseau : Qt oublie les connexions de l'ancien réseau, les requêtes sans réponse depuis 12 s sont annulées, l'état de lecture est revérifié toutes les 2 s tant que Spotify est injoignable ; plus d'erreur 403 au premier appui quand l'état affiché était périmé ; le script de compilation installe avec zypper |
-| Hutspot 0.13.0 | Connexion au compte robuste face aux changements de réseau : une panne réseau pendant le renouvellement du jeton n'efface plus la session (seul un refus explicite de Spotify le fait) ; renouvellement en arrière-plan avec nouvelles tentatives silencieuses ; une requête refusée pour jeton expiré attend le nouveau jeton puis repart ; plus de dialogue « Connexion réseau perdue. Quitter ? » ni de page de connexion ouverte toute seule ; bannières d'erreur réseau limitées à une par minute ; réglage « Gérer la connexion réseau » supprimé |
-| Hutspot 0.14.0 | Page « Parcourir » de la voiture (Sailplay, indications de présentation en essai) : onglets Albums, Playlists, Podcasts, Livres audio, Récents ; cartes avec pochette ; morceaux d'un album ou d'une playlist, dont l'appui ajoute à la file ; panneau de droite avec la file de lecture, Aléatoire et Répéter. Les morceaux et la file sont demandés à Hutspot par D-Bus (liste fermée de requêtes), le service ne voit aucun jeton. Partie compilée inchangée (0.13.0). Repli en listes simples avec le Sailplay officiel |
-| Hutspot 0.11.0 | Réglages : état de Soloist, « Réappairer », nouvelle clé ; scripts `soloist-pair.sh` et `soloist-setkey.sh` |
-| Hutspot 0.10.0 | Écran de la voiture (Sailplay) : barre de progression et déplacement, bouton « Parcourir », démarrage depuis la voiture ; boutons des écouteurs |
-| Hutspot 0.9.2 | Reprise de la lecture quand la session Spotify a disparu (relance de Soloist) |
-| Hutspot 0.9.3 | JollaPhone reste dans la liste des appareils en données mobiles |
-| soloist-audiores 1.2.0 | Lanceur, rôle audio `x-maemo`, interception du chargement de PulseAudio |
-| soloist-netwatch 1.0.0 | Relance de Soloist après un changement de réseau ou une coupure d'internet |
-| soloist-audiores 2.0.0 | Relais avec les autres lecteurs (Audiobook, SailCast) : Soloist met en pause l'application qui jouait, et se met en pause quand une autre prend la main |
-| soloist-netwatch 1.1.0 | Ignore les commandes « soloist ctl » du lanceur |
-| soloist-netwatch 1.3.0 | Relance aussi quand Soloist perd sa session ; relance au plus tard 45 s après un changement de réseau même si le test d'internet échoue ; test d'internet sur plusieurs serveurs |
-| soloist-netwatch 1.2.0 | Ne relance plus un Soloist déconnecté de son compte (en attente d'appairage) |
-| soloist-audiores 2.1.0 | Surveillance de PulseAudio : Soloist se met en pause quand un autre lecteur démarre, même si Sailfish ne signale pas la perte de la ressource ; journal dans `~/.cache/soloist-audiores.log` |
-| soloist-netwatch 1.0.1 | Test d'internet sans la commande `timeout`, absente de Sailfish OS |
+| 0.5.1 | Adaptation to the February 2026 Spotify API |
+| 0.6.0 | French interface, Sailfish pulley menu, mini player |
+| 0.7.0 | "Featured" page, album sorting (title, artist, genre, date) |
+| 0.8.0 | Podcasts and audiobooks, cache of the album list |
+| 0.9.0 | Add to library (star, long press); touching a title plays it |
+| 0.9.1 | Cover on the lock screen (Amber MPRIS), Sailfish notifications |
+| 0.9.2 | Playback resumes when the Spotify session has disappeared (Soloist restart) |
+| 0.9.3 | JollaPhone stays in the device list on mobile data |
+| 0.10.0 | Car screen (Sailplay): progress bar and seeking, "Browse" button, start from the car; headset buttons |
+| 0.11.0 | Settings: Soloist state, "Pair again", new key; scripts `soloist-pair.sh` and `soloist-setkey.sh` |
+| 0.12.0 | Compiled part fixed: network requests work again after switching between Wi-Fi and mobile data (Qt 5 defect); compilation on the phone with `build-hutspot-binary.sh` |
+| 0.12.1 | Faster recovery after a network change: Qt forgets the connections of the old network, requests unanswered for 12 s are cancelled, playback state is rechecked every 2 s while Spotify is unreachable; no more 403 error on the first tap when the displayed state was stale; the build script installs with zypper |
+| 0.13.0 | Account session robust to network changes: a network failure during token renewal no longer erases the session (only an explicit refusal from Spotify does); background renewal with silent retries; a request refused for an expired token waits for the new token and is sent again; no more "Network connection lost. Quit?" dialog or login page opening by itself; network error banners limited to one per minute; "Manage network connection" setting removed |
+| 0.14.0 | Car "Browse" page (Sailplay presentation hints): tabs Albums, Playlists, Podcasts, Audiobooks, Recent; cards with cover; tracks of an album or playlist, a tap adds to the queue; right panel with the play queue, Shuffle and Repeat. Tracks and queue are requested from Hutspot over D-Bus (closed list of requests); the service sees no token. Compiled part unchanged (0.13.0). Falls back to plain lists with the official Sailplay |
 
-L'archive `hutspot-rpm-0.7.0.tar.gz` contient un fichier de construction RPM, non utilisé : l'installation par script a été préférée.
+The archive `hutspot-rpm-0.7.0.tar.gz` contains an RPM build file, unused: installation by script was preferred.
 
-## Limites connues
+### soloist-audiores
 
-En données mobiles, la découverte locale (mDNS) est impossible : Spotify ne liste alors plus JollaPhone parmi les appareils, bien qu'il accepte toujours les commandes envoyées à son identifiant. Depuis la version 0.9.3, Hutspot rajoute lui-même dans la liste l'appareil choisi en dernier. Si cet appareil est un autre que le téléphone, il reste affiché même éteint.
+| Version | Content |
+|---|---|
+| 1.2.0 | Launcher, `x-maemo` audio role, interception of PulseAudio loading |
+| 2.0.0 | Hand-over with other players (Audiobook, SailCast): Soloist pauses the application that was playing, and pauses itself when another takes over |
+| 2.1.0 | PulseAudio monitoring: Soloist pauses when another player starts, even if Sailfish does not report the loss of the resource; log in `~/.cache/soloist-audiores.log` |
 
-Spotify a fermé aux applications en mode développeur les nouveautés éditoriales, les catégories, les recommandations, la radio et le contenu des playlists dont on n'est pas propriétaire. La page « À la une » est reconstruite à partir de ce qui reste ouvert. L'identifiant d'application intégré à Hutspot est celui de son auteur d'origine, limité à cinq utilisateurs : il ne convient pas à une diffusion publique.
+### soloist-netwatch
+
+| Version | Content |
+|---|---|
+| 1.0.0 | Restarts Soloist after a network change or an internet outage |
+| 1.0.1 | Internet test without the `timeout` command, absent from Sailfish OS |
+| 1.1.0 | Ignores the launcher's `soloist ctl` commands |
+| 1.2.0 | No longer restarts a Soloist that is logged out (waiting for pairing) |
+| 1.3.0 | Also restarts when Soloist loses its session; restarts at the latest 45 s after a network change even if the internet test fails; internet test on several servers |
+
+## Known limits
+
+- **Mobile data.** Local discovery (mDNS) is impossible there: Spotify then no longer lists JollaPhone among the devices, although it still accepts commands sent to its identifier. Since 0.9.3 Hutspot adds the last chosen device to the list itself. If that device is not the phone, it stays listed even when switched off.
+- **Closed parts of the Spotify API.** For applications in developer mode Spotify has closed editorial new releases, categories, recommendations, radio, and the content of playlists one does not own. The "Featured" page is rebuilt from what remains open.
+- **Application ID.** The one built into Hutspot is its original author's, limited to five users: it is not suitable for public distribution.
 
 ## Licences
 
-Le code de Hutspot est sous licence MIT (Willem-Jan de Hoog et contributeurs) ; les modifications du fork suivent la même licence. Soloist est un logiciel propriétaire de Spotify et n'est pas inclus.
+Hutspot's code is under the MIT licence (Willem-Jan de Hoog and contributors); the fork's modifications follow the same licence. Soloist is proprietary Spotify software and is not included. The Sailplay SDK used by the car service is provided by Sailplay (GPL-3.0-or-later) and is not copied here.
