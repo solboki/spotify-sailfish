@@ -1865,8 +1865,16 @@ ApplicationWindow {
     }
     onFavoriteEvent: carLibraryDelay.restart()
 
-    function _carItem(uri, title, subtitle) {
-        return {uri: uri, title: title ? title : "", subtitle: subtitle ? subtitle : ""}
+    // images: a Spotify image list, largest first. The car shows cards of
+    // about 100 px: take the medium picture (300 px) when there is one.
+    function _carItem(uri, title, subtitle, images) {
+        var item = {uri: uri, title: title ? title : "", subtitle: subtitle ? subtitle : ""}
+        if(images && images.length > 0) {
+            var picture = images[images.length > 1 ? 1 : 0]
+            if(picture && picture.url)
+                item.image = picture.url
+        }
+        return item
     }
 
     function refreshCarLibrary() {
@@ -1879,7 +1887,7 @@ ApplicationWindow {
                             var p = data.items[i]
                             if(p)
                                 lib.playlists.push(_carItem(p.uri, p.name,
-                                    p.owner && p.owner.display_name ? p.owner.display_name : ""))
+                                    p.owner && p.owner.display_name ? p.owner.display_name : "", p.images))
                         }
                     next()
                 })
@@ -1890,7 +1898,7 @@ ApplicationWindow {
                         var a = list[i].album
                         if(a)
                             lib.albums.push(_carItem(a.uri, a.name,
-                                a.artists && a.artists.length > 0 ? a.artists[0].name : ""))
+                                a.artists && a.artists.length > 0 ? a.artists[0].name : "", a.images))
                     }
                 }
                 var cached = LibraryCache.savedAlbums()
@@ -1924,7 +1932,7 @@ ApplicationWindow {
                         for(var i=0;i<data.items.length;i++) {
                             var sh = data.items[i] ? data.items[i].show : null
                             if(sh)
-                                lib.shows.push(_carItem(sh.uri, sh.name, sh.publisher))
+                                lib.shows.push(_carItem(sh.uri, sh.name, sh.publisher, sh.images))
                         }
                     next()
                 })
@@ -1936,7 +1944,7 @@ ApplicationWindow {
                             var b = data.items[i] ? (data.items[i].audiobook ? data.items[i].audiobook : data.items[i]) : null
                             if(b)
                                 lib.audiobooks.push(_carItem(b.uri, b.name,
-                                    b.authors ? Util.createItemsString(b.authors, "") : ""))
+                                    b.authors ? Util.createItemsString(b.authors, "") : "", b.images))
                         }
                     next()
                 })
@@ -1950,7 +1958,8 @@ ApplicationWindow {
                             if(t && !seen[t.uri]) {
                                 seen[t.uri] = true
                                 lib.recent.push(_carItem(t.uri, t.name,
-                                    t.artists ? Util.createItemsString(t.artists, "") : ""))
+                                    t.artists ? Util.createItemsString(t.artists, "") : "",
+                                    t.album ? t.album.images : null))
                             }
                         }
                     next()

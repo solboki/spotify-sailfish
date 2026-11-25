@@ -230,6 +230,12 @@ function _performRequest(requestData, callback) {
     }
 }
 
+// A request given as method and path (query included), used by the car
+// "Browse" service through the app (components/DBusControl.qml).
+function apiRequest(method, path, callback) {
+  _performRequest({ url: _baseUri + path, type: method }, callback);
+}
+
 function _checkParamsAndPerformRequest(requestData, options, callback, optionsAlwaysExtendParams) {
   var opt = {};
   var cb = null;
