@@ -5,6 +5,7 @@ import Sailfish.WebEngine 1.0
 
 Page {
     id: webAuth
+    objectName: "webAuth"
 
     property alias url: webView.url
     property alias pHeader: pHeader

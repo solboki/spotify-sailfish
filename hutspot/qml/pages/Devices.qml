@@ -63,7 +63,7 @@ Page {
             }
             MenuItem {
                 text: qsTr("Refresh Token")
-                onClicked: spotify.refreshToken()
+                onClicked: app.refreshToken()
             }
         }
 

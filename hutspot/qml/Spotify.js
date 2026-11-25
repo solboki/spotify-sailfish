@@ -71,27 +71,101 @@ function _buildUrl(url, parameters) {
 // cancels it so that the next one goes out on the new network.
 var _pending = [];
 
+// --- Token handling ---------------------------------------------------------
+//
+// The access token lives about one hour. The app renews it in the background,
+// but the phone can sleep or be offline when that should happen. So a request
+// never fails just because the token is too old: it waits here until the app
+// has obtained a new one, then it is sent.
+
+var _tokenExpires = 0;      // ms since epoch, 0 = unknown
+var _waiting = [];          // requests waiting for a new token
+var _hooks = {
+  refresh: null,            // function(): ask the app for a new token
+  defer: null               // function(ms, fn): call fn later
+};
+
+function setHooks(hooks) {
+  _hooks.refresh = hooks.refresh || null;
+  _hooks.defer = hooks.defer || null;
+}
+
+function _tokenTooOld() {
+  return _tokenExpires > 0 && Date.now() > _tokenExpires - 30000;
+}
+
+function _waitForToken(requestData, callback) {
+  _waiting.push({ requestData: requestData, callback: callback, started: Date.now() });
+  _hooks.refresh();
+}
+
+// The app has a new token: send everything that was waiting for it.
+function tokenReady() {
+  var list = _waiting;
+  _waiting = [];
+  var now = Date.now();
+  for (var i = 0; i < list.length; i++) {
+    // a command asked long ago must not fire now, out of the blue
+    if (now - list[i].started > 15000) {
+      if (list[i].callback)
+        list[i].callback({ status: 0, message: "No connection" });
+    } else
+      _performRequest(list[i].requestData, list[i].callback);
+  }
+}
+
+// No new token could be obtained. needsLogin: Spotify refused the session
+// (answer as 401); otherwise it is a network problem (answer as status 0).
+function tokenFailed(needsLogin) {
+  var list = _waiting;
+  _waiting = [];
+  for (var i = 0; i < list.length; i++)
+    if (list[i].callback)
+      list[i].callback(needsLogin ? { status: 401, message: "Login required" }
+                                  : { status: 0, message: "No connection" });
+}
+
 function abortStale(maxAgeMs) {
   var now = Date.now();
   var keep = [];
-  for (var i = 0; i < _pending.length; i++) {
+  var i;
+  for (i = 0; i < _pending.length; i++) {
     var p = _pending[i];
     if (p.req.readyState === 4)
       continue;
     if (now - p.started > maxAgeMs) {
       console.log("_performRequest: no answer after " + (now - p.started) + " ms, aborting " + p.url);
+      p.stale = true;
       try { p.req.abort(); } catch (e) {}
     } else {
       keep.push(p);
     }
   }
   _pending = keep;
+
+  // requests that have been waiting too long for a token
+  var waiting = [];
+  var expired = [];
+  for (i = 0; i < _waiting.length; i++)
+    (now - _waiting[i].started > maxAgeMs ? expired : waiting).push(_waiting[i]);
+  _waiting = waiting;
+  for (i = 0; i < expired.length; i++)
+    if (expired[i].callback)
+      expired[i].callback({ status: 0, message: "No connection" });
 }
 
 function _performRequest(requestData, callback) {
-  var req = new XMLHttpRequest();
     var type = requestData.type || 'GET';
-    _pending.push({ req: req, started: Date.now(), url: requestData.url });
+
+    // token known to be too old: get a new one first
+    if (_hooks.refresh && _tokenTooOld()) {
+      _waitForToken(requestData, callback);
+      return;
+    }
+
+    var req = new XMLHttpRequest();
+    var entry = { req: req, started: Date.now(), url: requestData.url, stale: false };
+    _pending.push(entry);
     req.open(type, _buildUrl(requestData.url, requestData.params));
     if (_accessToken) {
       req.setRequestHeader('Authorization', 'Bearer ' + _accessToken);
@@ -111,14 +185,37 @@ function _performRequest(requestData, callback) {
 
         if (req.status >= 200 && req.status < 300) {
           _normalize2026(data, 0);
-          callback(null, data);
-        } else {
-          if (!data || typeof data !== 'object')
-            data = { error: { status: req.status, message: req.statusText || ('HTTP ' + req.status) } };
-          callback(data.error);
-          if(data.error)
-              console.error("_performRequest: " + data.error.status + ": " + data.error.message);
+          if (callback)
+            callback(null, data);
+          return;
         }
+
+        // 401: the token was refused although we thought it valid (clock
+        // change, token revoked early). Get a new one and send again, once.
+        if (req.status === 401 && _hooks.refresh && !requestData._authRetried) {
+          requestData._authRetried = true;
+          _tokenExpires = 1;   // too old from now on, until a new token arrives
+          _waitForToken(requestData, callback);
+          return;
+        }
+
+        // No answer at all, quickly: typically the short gap while the phone
+        // moves from one network to another. Try once more a little later.
+        // Only for requests that can safely be sent twice (not POST: "next"
+        // sent twice would skip two tracks).
+        if (req.status === 0 && !entry.stale && !requestData._netRetried
+            && _hooks.defer && (type === 'GET' || type === 'PUT')
+            && Date.now() - entry.started < 5000) {
+          requestData._netRetried = true;
+          _hooks.defer(1500, function() { _performRequest(requestData, callback); });
+          return;
+        }
+
+        if (!data || typeof data !== 'object' || !data.error || typeof data.error !== 'object')
+          data = { error: { status: req.status, message: req.statusText || ('HTTP ' + req.status) } };
+        console.error("_performRequest: " + data.error.status + ": " + data.error.message);
+        if (callback)
+          callback(data.error);
       }
     }
 
@@ -1674,10 +1771,11 @@ function getAccessToken() {
  * the Spotify Developer site for more information about obtaining an access token.
  *
  * @param {string} accessToken The access token
- * @return {void}
+ * @param {number} expires When it expires, in seconds since epoch (optional)
  */
-function setAccessToken(accessToken) {
+function setAccessToken(accessToken, expires) {
   _accessToken = accessToken;
+  _tokenExpires = expires > 0 ? expires * 1000 : 0;
 };
 
 var ItemType = {

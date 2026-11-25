@@ -1386,16 +1386,6 @@
         <translation>Placer la page « Lecture en cours » à droite de chaque page</translation>
     </message>
     <message>
-        <location filename="../qml/pages/Settings.qml" line="227" />
-        <source>Handle Network Connection</source>
-        <translation>Gérer la connexion réseau</translation>
-    </message>
-    <message>
-        <location filename="../qml/pages/Settings.qml" line="228" />
-        <source>Detect network connect/disconnect and act on it.</source>
-        <translation>Détecter la connexion et la perte du réseau, et réagir en conséquence.</translation>
-    </message>
-    <message>
         <location filename="../qml/pages/Settings.qml" line="238" />
         <source>Authorize using Browser</source>
         <translation>S'autoriser avec le navigateur</translation>
@@ -1675,6 +1665,11 @@
         <translation>Spotify injoignable : vérifiez la connexion</translation>
     </message>
     <message>
+        <location filename="../qml/hutspot.qml" line="383" />
+        <source>Spotify asks you to log in again (Settings, Login)</source>
+        <translation>Spotify demande une nouvelle connexion (Réglages, Connexion)</translation>
+    </message>
+    <message>
         <location filename="../qml/hutspot.qml" line="392" />
         <source>Failed to transfer to</source>
         <translation>Échec du transfert vers</translation>
@@ -1688,11 +1683,6 @@
         <location filename="../qml/hutspot.qml" line="521" />
         <source>Connected</source>
         <translation>Connecté</translation>
-    </message>
-    <message>
-        <location filename="../qml/hutspot.qml" line="532" />
-        <source>Failed to Refresh Authorization Token</source>
-        <translation>Échec du renouvellement de l'autorisation</translation>
     </message>
     <message>
         <location filename="../qml/hutspot.qml" line="711" />
@@ -1728,16 +1718,6 @@
         <location filename="../qml/hutspot.qml" line="1063" />
         <source>View an Artist</source>
         <translation>Voir un artiste</translation>
-    </message>
-    <message>
-        <location filename="../qml/hutspot.qml" line="1910" />
-        <source>Lost Network Connection. Quit?</source>
-        <translation>Connexion réseau perdue. Quitter ?</translation>
-    </message>
-    <message>
-        <location filename="../qml/hutspot.qml" line="1916" />
-        <source>There seems to be no network connection. Quit?</source>
-        <translation>Aucune connexion réseau. Quitter ?</translation>
     </message>
 </context>
 </TS>

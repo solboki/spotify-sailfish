@@ -111,7 +111,6 @@ ApplicationWindow {
     property alias hutspot_queue_playlist_name: hutspot_queue_playlist_name
     property alias enable_connect_discovery: enable_connect_discovery
     property alias show_devices_page_at_startup: show_devices_page_at_startup
-    property alias handle_network_connection: handle_network_connection
     property alias controlpanel_show_delay: controlpanel_show_delay
     property alias logging_flags: logging_flags
     property alias locale_config: locale_config
@@ -360,13 +359,29 @@ ApplicationWindow {
         _attachedPage = 1
     }
 
+    // Banners that can repeat (no network, login needed) are shown at most
+    // once a minute: a page that sends ten requests while the phone is
+    // offline must not produce ten banners.
+    property var _lastBanner: ({})
+    function _showRarely(key, message) {
+        var now = Date.now()
+        if(_lastBanner[key] && now - _lastBanner[key] < 60000)
+            return
+        _lastBanner[key] = now
+        msgBox.showMessage(message, 3000)
+    }
+
     function showErrorMessage(error, text) {
         var msg
         if(!text)
             text = qsTr("Spotify error")
         if(error && error.status === 0) {
             // no answer at all: no network, or the network has just changed
-            msgBox.showMessage(qsTr("Cannot reach Spotify: check the connection"), 3000)
+            _showRarely("network", qsTr("Cannot reach Spotify: check the connection"))
+            return
+        }
+        if(error && error.status === 401 && needsLogin) {
+            _showRarely("login", qsTr("Spotify asks you to log in again (Settings, Login)"))
             return
         }
         if(error) {
@@ -393,30 +408,36 @@ ApplicationWindow {
         })
     }
 
+    // Called once, when the app starts. Nothing here depends on the network
+    // being up: the token is used or renewed as soon as that is possible.
     function startSpotify() {
-        if (!spotify.isLinked()) {
-            spotify.doO2Auth(Spotify._scope, auth_using_browser.value)
-        } else {
-            var now = new Date ()
-            console.log("Currently it is " + now.toDateString() + " " + now.toTimeString())
-            var tokenExpireTime = spotify.getExpires()
-            var tokenExpireDate = new Date(tokenExpireTime*1000)
-            console.log("Current token expires on: " + tokenExpireDate.toDateString() + " " + tokenExpireDate.toTimeString())
-            // do not set the 'global' hasValidToken since we will refresh anyway
-            // and that will interfere
-            var hasValidToken = tokenExpireDate > now
-            console.log("Token is " + hasValidToken ? "still valid" : "expired")
-
-            // with Spotify's stupid short living tokens, we can totally assume
-            // it's already expired
-            spotify.refreshToken();
-        }
+        Spotify.setHooks({
+            // a request needs a new token now. While renewals are failing,
+            // do not try more than once every 5 s: the request simply waits
+            // for the next attempt (and gives up quietly after 12 s).
+            refresh: function() {
+                if(Date.now() - app._lastRefreshAttempt > 5000)
+                    app.refreshToken()
+            },
+            defer: function(ms, fn) { app.callLater(ms, fn) }
+        })
 
         history = history_store.value
 
         // start discovery
         if(enable_connect_discovery.value)
             spConnect.startMDNSService()
+
+        if(!spotify.isLinked()) {
+            // never logged in (or logged out): open the login page, once
+            needsLogin = true
+            connectionText = qsTr("Disconnected")
+            spotify.doO2Auth(Spotify._scope, auth_using_browser.value)
+        } else if(spotify.getExpires() - Date.now() / 1000 > 5 * 60) {
+            // the stored token is still good: use it at once
+            _useToken()
+        } else
+            refreshToken()
     }
 
     onHasValidTokenChanged: {
@@ -479,21 +500,139 @@ ApplicationWindow {
         }
     }
 
+    // --- Spotify session ----------------------------------------------------
+    //
+    // hasValidToken: requests can be sent.
+    // needsLogin:    Spotify refused the stored session; only the user can
+    //                fix that (Settings, Login). Network trouble never sets it.
+    //
+    // The token is renewed in the background, 10 minutes before it expires.
+    // A renewal that fails for lack of network is simply tried again (after
+    // 2 s, 4 s, 8 s... up to 1 minute, and at once when the network returns),
+    // without any message: the user is only told when a request they asked
+    // for cannot be done.
+
     property int tokenExpireTime: 0 // seconds from epoch
-    Timer  {
-        // refresh token 10 minutes before expiring
+    property bool hasValidToken: false
+    property bool needsLogin: false
+    property bool _refreshing: false
+    property int _refreshFailures: 0
+    property real _lastRefreshAttempt: 0
+
+    function _tokenSecondsLeft() {
+        return tokenExpireTime - Date.now() / 1000
+    }
+
+    // Take the token stored by the compiled part into use.
+    function _useToken() {
+        tokenExpireTime = spotify.getExpires()
+        Spotify._username = spotify.getUserName()
+        Spotify.setAccessToken(spotify.getToken(), tokenExpireTime)
+        var date = new Date(tokenExpireTime*1000)
+        console.log("token expires on: " + date.toDateString() + " " + date.toTimeString())
+        _refreshFailures = 0
+        refreshRetryTimer.stop()
+        needsLogin = false
+        connectionText = qsTr("Connected")
+        Spotify.tokenReady()
+        if(!hasValidToken) {
+            hasValidToken = true
+            loadUser()
+        } else if(app.id === "")
+            loadUser()
+    }
+
+    function refreshToken() {
+        if(_refreshing)
+            return
+        if(!spotify.isLinked()) {
+            _loginNeeded()
+            return
+        }
+        _refreshing = true
+        _lastRefreshAttempt = Date.now()
+        refreshRetryTimer.stop()
+        refreshWatchdog.restart()
+        spotify.refreshToken()
+    }
+
+    // Renew the token if it is close to its end. Cheap: called often.
+    function checkToken() {
+        if(needsLogin || !spotify.isLinked())
+            return
+        if(_tokenSecondsLeft() < 10*60)
+            refreshToken()
+    }
+
+    function _loginNeeded() {
+        var first = !needsLogin
+        needsLogin = true
+        hasValidToken = false
+        refreshRetryTimer.stop()
+        connectionText = qsTr("Disconnected")
+        Spotify.tokenFailed(true)
+        if(first)
+            _showRarely("login", qsTr("Spotify asks you to log in again (Settings, Login)"))
+    }
+
+    function _refreshFailed() {
+        _refreshFailures++
+        if(_tokenSecondsLeft() <= 0)
+            hasValidToken = false
+        refreshRetryTimer.interval = Math.min(60, Math.pow(2, Math.min(_refreshFailures, 6))) * 1000
+        refreshRetryTimer.restart()
+        console.log("token refresh failed (" + _refreshFailures + "), next try in "
+                    + refreshRetryTimer.interval / 1000 + " s")
+    }
+
+    Timer {
+        // looks every minute whether the token must be renewed
         id: refreshTokenTimer
         interval: 60*1000
         running: tokenExpireTime > 0
         repeat: true
+        onTriggered: checkToken()
+    }
+
+    Timer {
+        id: refreshRetryTimer
+        onTriggered: refreshToken()
+    }
+
+    Timer {
+        // the compiled part gives up after 20 s; this is only a safety net
+        id: refreshWatchdog
+        interval: 40*1000
         onTriggered: {
-            var diff = tokenExpireTime - (Date.now() / 1000)
-            if(diff < (10*60))
-                spotify.refreshToken()
+            if(_refreshing) {
+                _refreshing = false
+                _refreshFailed()
+            }
         }
     }
 
-    property bool hasValidToken: false
+    // Timers do not run while the phone sleeps: look at the token as soon as
+    // the app is in front again.
+    Connections {
+        target: Qt.application
+        onActiveChanged: if(Qt.application.active) checkToken()
+    }
+
+    // General purpose "call this later" (used by Spotify.js to send a
+    // request again after a short network gap).
+    Component {
+        id: laterComponent
+        Timer {
+            property var action
+            onTriggered: {
+                try { action() } catch(err) { console.log("callLater: " + err) }
+                destroy()
+            }
+        }
+    }
+    function callLater(ms, fn) {
+        laterComponent.createObject(app, {interval: ms, action: fn, running: true})
+    }
 
     Connections {
         target: spotify
@@ -505,21 +644,16 @@ ApplicationWindow {
         }
 
         onLinkingFailed: {
+            // the login page was closed or refused; the session is unchanged
             console.log("Connections.onLinkingFailed")
-            app.connectionText = qsTr("Disconnected")
+            if(!spotify.isLinked())
+                connectionText = qsTr("Disconnected")
         }
 
         onLinkingSucceeded: {
+            // after a login, and after each successful refresh
             console.log("Connections.onLinkingSucceeded")
-            //console.log("username: " + spotify.getUserName())
-            //console.log("token   : " + spotify.getToken())
-            Spotify._accessToken = spotify.getToken()
-            Spotify._username = spotify.getUserName()
-            tokenExpireTime = spotify.getExpires()
-            var date = new Date(tokenExpireTime*1000)
-            console.log("expires on: " + date.toDateString() + " " + date.toTimeString())
-            app.connectionText = qsTr("Connected")
-            loadUser()
+            _useToken()
         }
 
         onLinkedChanged: {
@@ -528,30 +662,37 @@ ApplicationWindow {
 
         onRefreshFinished: {
             console.log("Connections.onRefreshFinished error code: " + errorCode +", msg: " + errorString)
-            if(errorCode !== 0) {
-                showErrorMessage(errorString, qsTr("Failed to Refresh Authorization Token"))
-            } else {
-                console.log("expires: " + tokenExpireTime)
-                tokenExpireTime = spotify.getExpires()
-                var expDate = new Date(tokenExpireTime*1000)
-                console.log("expires on: " + expDate.toDateString() + " " + expDate.toTimeString())
-                var now = new Date()
-                hasValidToken = expDate > now
-            }
+            _refreshing = false
+            refreshWatchdog.stop()
+            if(errorCode === 0)
+                _useToken()
+            else if(!spotify.isLinked())
+                _loginNeeded()      // Spotify refused the session itself
+            else
+                _refreshFailed()    // network trouble: try again later
         }
 
-        onOpenBrowser: {            
+        onOpenBrowser: {
             if(auth_using_browser.value)
                 Qt.openUrlExternally(url)
             else
                 scheduleDelayedAction(function() {
-                    pageStack.push(Qt.resolvedUrl("components/WebAuth.qml"),
-                                   {url: url, scale: Screen.widthRatio})
+                    // one login page at most
+                    var open = pageStack.find(function(page) { return page.objectName === "webAuth" })
+                    if(open)
+                        open.url = url
+                    else
+                        pageStack.push(Qt.resolvedUrl("components/WebAuth.qml"),
+                                       {url: url, scale: Screen.widthRatio})
                 })
         }
 
         onCloseBrowser: {
-            //loadFirstPage()
+            // login done: leave the login page
+            scheduleDelayedAction(function() {
+                if(pageStack.currentPage && pageStack.currentPage.objectName === "webAuth")
+                    pageStack.pop()
+            })
         }
     }
 
@@ -1333,12 +1474,6 @@ ApplicationWindow {
             defaultValue: false
     }
 
-    ConfigurationValue {
-            id: handle_network_connection
-            key: "/hutspot/handle_network_connection"
-            defaultValue: true
-    }
-
     ConfigurationValue { // in ms
         id: controlpanel_show_delay
         key: "/hutspot/controlpanel_show_delay"
@@ -1849,6 +1984,7 @@ ApplicationWindow {
         if(navigation_menu_type.value !== 3)
             navigation_menu_type.value = 3
         loadFirstPage()
+        startSpotify()
     }
 
     property var scheduledActions: []
@@ -1882,45 +2018,35 @@ ApplicationWindow {
         }
     }
 
+    // The phone changes network all the time (Wi-Fi, mobile data, tunnels,
+    // no coverage). None of that is an error and nothing is shown: requests
+    // in progress are retried or dropped quietly, and the session is kept.
+    // When a network comes back, the token is checked and the player state
+    // is read again at once instead of waiting for the next poll.
+    property bool online: networkConnection.networkConnected !== Util.NetworkState.Disconnected
+
     NetworkConnection {
         id: networkConnection
-        property bool initialNetworkStateKnown: false
-        onNetworkConnectedChanged: {
-            console.log("onConnmanConnectedChanged: " + networkConnected +" - " + initialNetworkStateKnown)
-            if(!handle_network_connection.value)
+        onChanged: {
+            console.log("network: " + networkConnected)
+            if(networkConnected === Util.NetworkState.Connected)
+                networkBackTimer.restart()
+        }
+    }
+
+    Timer {
+        // several signals arrive for one change of network: act once
+        id: networkBackTimer
+        interval: 1500
+        onTriggered: {
+            if(needsLogin || !spotify.isLinked())
                 return
-            switch(networkConnected) {
-            case Util.NetworkState.Unknown:
-                break
-            case Util.NetworkState.Connected:
-                // do we have to restart the whole login procedure?
-                // restart Librespot? reregister it as well?
-                /*if(initialNetworkStateKnown) {
-                    if(start_stop_librespot.value)
-                        librespot.stop()
-                }*/
-                initialNetworkStateKnown = true
-                startSpotify()
-                break
-            case Util.NetworkState.Disconnected:
-                // stop controller from querying Spotify servers
-                // stop Librespot? does systemd take care of that?
-                // or just quit?
-                if(initialNetworkStateKnown) {
-                    showConfirmDialog(qsTr("Lost Network Connection. Quit?"),
-                                      function() { Qt.quit() })
-                    if(start_stop_librespot.value)
-                        librespot.stop()
-                } else {
-                    scheduleDelayedAction(function() {
-                        showConfirmDialog(qsTr("There seems to be no network connection. Quit?"),
-                                      function() { Qt.quit() })
-                    })
-                }
-                break
-            }
+            if(!hasValidToken || _refreshFailures > 0 || _tokenSecondsLeft() < 10*60) {
+                _refreshFailures = 0
+                refreshToken()
+            } else
+                controller.refreshPlaybackState()
         }
     }
 
 }
-

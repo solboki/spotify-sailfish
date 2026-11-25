@@ -72,6 +72,7 @@ O2::O2(QObject *parent, QNetworkAccessManager *manager, O0AbstractStore *store):
     manager_ = manager ? manager : new QNetworkAccessManager(this);
     keepNetworkAccessible(manager_);   // see networkfix.h
     grantFlow_ = GrantFlowAuthorizationCode;
+    refreshing_ = false;
     localhostPolicy_ = QString(O2_CALLBACK_URL);
     qRegisterMetaType<QNetworkReply::NetworkError>("QNetworkReply::NetworkError");
     connect(replyServer_, SIGNAL(verificationReceived(QMap<QString,QString>)), this, SLOT(onVerificationReceived(QMap<QString,QString>)));
@@ -402,17 +403,26 @@ void O2::setRefreshToken(const QString &v) {
     store_->setValue(key, v);
 }
 
+// How long a refresh request may stay unanswered. After a network switch a
+// request can hang on a connection of the old network: give up and let the
+// caller try again.
+static const int RefreshTimeoutMs = 20000;
+
 void O2::refresh() {
     qDebug() << "O2::refresh: Token: ..." << refreshToken().right(7);
 
+    if (refreshing_) {
+        qDebug() << "O2::refresh: already refreshing";
+        return;
+    }
     if (refreshToken().isEmpty()) {
         qWarning() << "O2::refresh: No refresh token";
-        onRefreshError(QNetworkReply::AuthenticationRequiredError);
+        refreshFailed(QNetworkReply::AuthenticationRequiredError, "No refresh token", true);
         return;
     }
     if (refreshTokenUrl_.isEmpty()) {
         qWarning() << "O2::refresh: Refresh token URL not set";
-        onRefreshError(QNetworkReply::AuthenticationRequiredError);
+        refreshFailed(QNetworkReply::AuthenticationRequiredError, "Refresh token URL not set", false);
         return;
     }
 
@@ -425,47 +435,75 @@ void O2::refresh() {
     parameters.insert(O2_OAUTH2_GRANT_TYPE, O2_OAUTH2_REFRESH_TOKEN);
 
     QByteArray data = buildRequestBody(parameters);
+    refreshing_ = true;
     QNetworkReply *refreshReply = manager_->post(refreshRequest, data);
-    timedReplies_.add(refreshReply);
+    // Only finished() is used: it is emitted exactly once, error or not.
     connect(refreshReply, SIGNAL(finished()), this, SLOT(onRefreshFinished()), Qt::QueuedConnection);
-    connect(refreshReply, SIGNAL(error(QNetworkReply::NetworkError)), this, SLOT(onRefreshError(QNetworkReply::NetworkError)), Qt::QueuedConnection);
+    // The timer belongs to the reply: it disappears with it.
+    QTimer *timeout = new QTimer(refreshReply);
+    timeout->setSingleShot(true);
+    connect(timeout, &QTimer::timeout, refreshReply, &QNetworkReply::abort);
+    timeout->start(RefreshTimeoutMs);
 }
 
 void O2::onRefreshFinished() {
     QNetworkReply *refreshReply = qobject_cast<QNetworkReply *>(sender());
+    if (!refreshReply)
+        return;
+    refreshing_ = false;
+    refreshReply->deleteLater();
 
-   if (refreshReply->error() == QNetworkReply::NoError) {
-       QByteArray reply = refreshReply->readAll();
-       QVariantMap tokens = parseTokenResponse(reply);
-       setToken(tokens.value(O2_OAUTH2_ACCESS_TOKEN).toString());
-       setExpires((int)(QDateTime::currentMSecsSinceEpoch() / 1000 + tokens.value(O2_OAUTH2_EXPIRES_IN).toInt()));
-       QString refreshToken = tokens.value(O2_OAUTH2_REFRESH_TOKEN).toString();
-       if(!refreshToken.isEmpty()) {
-           setRefreshToken(refreshToken);
-       }
-       else {
-           qDebug() << "No new refresh token. Keep the old one.";
-       }
-       timedReplies_.remove(refreshReply);
-       setLinked(true);
-       Q_EMIT linkingSucceeded();
-       Q_EMIT refreshFinished(QNetworkReply::NoError, "");
-       qDebug() << " New token expires in" << tokens.value(O2_OAUTH2_EXPIRES_IN).toInt() << "seconds";
-   } else {
-       qDebug() << "O2::onRefreshFinished: Error" << (int)refreshReply->error() << refreshReply->errorString();
-   }
-   refreshReply->deleteLater();
+    QNetworkReply::NetworkError error = refreshReply->error();
+    int httpStatus = refreshReply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
+    QVariantMap tokens = parseTokenResponse(refreshReply->readAll());
+
+    if (error == QNetworkReply::NoError) {
+        QString accessToken = tokens.value(O2_OAUTH2_ACCESS_TOKEN).toString();
+        if (accessToken.isEmpty()) {
+            // an answer we cannot use (captive portal, proxy page...): keep the session
+            qWarning() << "O2::onRefreshFinished: no access token in the answer";
+            refreshFailed(QNetworkReply::UnknownContentError, "No access token in the answer", false);
+            return;
+        }
+        setToken(accessToken);
+        setExpires((int)(QDateTime::currentMSecsSinceEpoch() / 1000 + tokens.value(O2_OAUTH2_EXPIRES_IN).toInt()));
+        QString refreshToken = tokens.value(O2_OAUTH2_REFRESH_TOKEN).toString();
+        if (!refreshToken.isEmpty()) {
+            setRefreshToken(refreshToken);
+        } else {
+            qDebug() << "No new refresh token. Keep the old one.";
+        }
+        setLinked(true);
+        Q_EMIT linkingSucceeded();
+        Q_EMIT refreshFinished(QNetworkReply::NoError, "");
+        qDebug() << " New token expires in" << tokens.value(O2_OAUTH2_EXPIRES_IN).toInt() << "seconds";
+        return;
+    }
+
+    // The session is lost only when Spotify itself says that the refresh
+    // token is no longer accepted (revoked, password changed...). Anything
+    // else (no network, DNS, timeout, server error) is temporary: the stored
+    // session must be kept so that a later attempt can succeed.
+    QString oauthError = tokens.value("error").toString();
+    bool rejected = (httpStatus == 400 || httpStatus == 401) && oauthError == "invalid_grant";
+    qWarning() << "O2::onRefreshFinished: error" << (int)error << refreshReply->errorString()
+               << "http" << httpStatus << oauthError << (rejected ? "(session rejected)" : "(temporary)");
+    QString errorString = oauthError.isEmpty() ? QString("errorCode: %1").arg(error) : oauthError;
+    refreshFailed(rejected ? QNetworkReply::AuthenticationRequiredError : error, errorString, rejected);
+}
+
+void O2::refreshFailed(QNetworkReply::NetworkError error, const QString &errorString, bool rejected) {
+    refreshing_ = false;
+    if (rejected)
+        unlink();
+    Q_EMIT refreshFinished(error, errorString);
 }
 
 void O2::onRefreshError(QNetworkReply::NetworkError error) {
-    QNetworkReply *refreshReply = qobject_cast<QNetworkReply *>(sender());
+    // Kept for subclasses; refresh() no longer connects it. A network error
+    // never erases the session (see onRefreshFinished).
     qWarning() << "O2::onRefreshError: " << error;
-    unlink();
-    timedReplies_.remove(refreshReply);
-    QString errorString = QString("errorCode: %1").arg(error);
-    if(error == QNetworkReply::AuthenticationRequiredError)
-        errorString = "Authentication Required Error";
-    Q_EMIT refreshFinished(error, errorString);
+    refreshFailed(error, QString("errorCode: %1").arg(error), false);
 }
 
 void O2::serverHasClosed(bool paramsfound)

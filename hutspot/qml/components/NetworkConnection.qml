@@ -11,6 +11,10 @@ Item {
     property int networkConnected: Util.NetworkState.Unknown
     property var connmanConnections: {"wifi": Util.NetworkState.Unknown, "cellular": Util.NetworkState.Unknown}
 
+    // emitted each time a technology goes up or down, even when the phone
+    // stays connected overall (Wi-Fi to mobile data without a gap)
+    signal changed()
+
     function updateConnection(technology, connected) {
         console.log("updateConnection " + technology + " = " + connected)
         connmanConnections[technology] = connected ? Util.NetworkState.Connected : Util.NetworkState.Disconnected
@@ -26,6 +30,7 @@ Item {
             networkConnected = Util.NetworkState.Connected
         else if(!hasUnknown)
             networkConnected = Util.NetworkState.Disconnected
+        changed()
     }
 
     DBusInterface {

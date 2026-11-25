@@ -34,7 +34,7 @@ Page {
             }
             MenuItem {
                 text: qsTr("Refresh Token")
-                onClicked: spotify.refreshToken()
+                onClicked: app.refreshToken()
             }
         }
 
@@ -219,17 +219,6 @@ Page {
                 onCheckedChanged: {
                     app.playing_as_attached_page.value = checked
                     app.playing_as_attached_page.sync()
-                }
-            }
-
-            TextSwitch {
-                id: handle_network_connection
-                text: qsTr("Handle Network Connection")
-                description: qsTr("Detect network connect/disconnect and act on it.")
-                checked: app.handle_network_connection.value
-                onCheckedChanged: {
-                    app.handle_network_connection.value = checked
-                    app.handle_network_connection.sync()
                 }
             }
 

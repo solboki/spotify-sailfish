@@ -167,6 +167,12 @@ protected:
     QNetworkAccessManager *manager_;
     O2ReplyList timedReplies_;
     GrantFlow grantFlow_;
+    /// true while a refresh request is waiting for its answer
+    bool refreshing_;
+
+    /// Report a failed refresh. The stored session is erased only when
+    /// @p rejected is true (Spotify refused the refresh token itself).
+    void refreshFailed(QNetworkReply::NetworkError error, const QString &errorString, bool rejected);
 };
 
 #endif // O2_H
