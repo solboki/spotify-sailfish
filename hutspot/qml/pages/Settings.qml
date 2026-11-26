@@ -223,6 +223,17 @@ Page {
             }
 
             TextSwitch {
+                id: car_lyrics
+                text: qsTr("Lyrics on the car screen")
+                description: qsTr("Ask lrclib.net for the lyrics of each track played (it receives the title, the artist and the duration) and show them in the car with Sailplay")
+                checked: app.car_lyrics.value
+                onCheckedChanged: {
+                    app.car_lyrics.value = checked
+                    app.car_lyrics.sync()
+                }
+            }
+
+            TextSwitch {
                 id: auth_using_browser
                 text: qsTr("Authorize using Browser")
                 description: qsTr("Use external Browser to login at Spotify")

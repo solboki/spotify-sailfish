@@ -1386,6 +1386,14 @@
         <translation>Placer la page « Lecture en cours » à droite de chaque page</translation>
     </message>
     <message>
+        <source>Lyrics on the car screen</source>
+        <translation>Paroles sur l'écran de la voiture</translation>
+    </message>
+    <message>
+        <source>Ask lrclib.net for the lyrics of each track played (it receives the title, the artist and the duration) and show them in the car with Sailplay</source>
+        <translation>Demander à lrclib.net les paroles de chaque morceau écouté (il reçoit le titre, l'artiste et la durée) et les afficher dans la voiture avec Sailplay</translation>
+    </message>
+    <message>
         <location filename="../qml/pages/Settings.qml" line="238" />
         <source>Authorize using Browser</source>
         <translation>S'autoriser avec le navigateur</translation>

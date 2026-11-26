@@ -1400,6 +1400,14 @@ ApplicationWindow {
             defaultValue: 3
     }
 
+    // lyrics on the car screen, asked to lrclib.net (off unless chosen)
+    property alias car_lyrics: car_lyrics
+    ConfigurationValue {
+            id: car_lyrics
+            key: "/hutspot/car_lyrics"
+            defaultValue: false
+    }
+
     ConfigurationValue {
             id: playing_as_attached_page
             key: "/hutspot/playing_as_attached_page"

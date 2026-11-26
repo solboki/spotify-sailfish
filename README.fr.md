@@ -56,7 +56,7 @@ devel-su pkcon install mpris-qt5-qml-plugin
 Installez ensuite la dernière version du fork :
 
 ```
-tar xzf releases/hutspot-fork-0.14.0.tar.gz && cd hutspot-fork-0.14.0
+tar xzf releases/hutspot-fork-0.15.0.tar.gz && cd hutspot-fork-0.15.0
 devel-su sh install-hutspot-fork.sh
 ```
 
@@ -210,6 +210,7 @@ Le service peut aussi être essayé sans voiture ni compte Spotify : une applica
 | 0.12.1 | Reprise plus rapide après un changement de réseau : Qt oublie les connexions de l'ancien réseau, les requêtes sans réponse depuis 12 s sont annulées, l'état de lecture est revérifié toutes les 2 s tant que Spotify est injoignable ; plus d'erreur 403 au premier appui quand l'état affiché était périmé ; le script de compilation installe avec zypper |
 | 0.13.0 | Connexion au compte robuste face aux changements de réseau : une panne réseau pendant le renouvellement du jeton n'efface plus la session (seul un refus explicite de Spotify le fait) ; renouvellement en arrière-plan avec nouvelles tentatives silencieuses ; une requête refusée pour jeton expiré attend le nouveau jeton puis repart ; plus de dialogue « Connexion réseau perdue. Quitter ? » ni de page de connexion ouverte toute seule ; bannières d'erreur réseau limitées à une par minute ; réglage « Gérer la connexion réseau » supprimé |
 | 0.14.0 | Page « Parcourir » de la voiture (indications de présentation Sailplay) : onglets Albums, Playlists, Podcasts, Livres audio, Récents ; cartes avec pochette ; morceaux d'un album ou d'une playlist, dont l'appui ajoute à la file ; panneau de droite avec la file de lecture, Aléatoire et Répéter. Les morceaux et la file sont demandés à Hutspot par D-Bus (liste fermée de requêtes), le service ne voit aucun jeton. Partie compilée inchangée (0.13.0). Repli en listes simples avec le Sailplay officiel |
+| 0.15.0 | Écran de la voiture (Sailplay 0.1.1-158 et suivants) : le bouton de mode du lecteur règle lecture normale, répétition du morceau, répétition de la liste et aléatoire (MPRIS `LoopStatus` et `Shuffle`) ; paroles synchronisées, demandées à lrclib.net si le réglage « Paroles sur l'écran de la voiture » est activé (désactivé par défaut) |
 
 L'archive `hutspot-rpm-0.7.0.tar.gz` contient un fichier de construction RPM, non utilisé : l'installation par script a été préférée.
 
