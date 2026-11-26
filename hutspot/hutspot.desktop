@@ -7,12 +7,12 @@ Name=hutspot
 Name[de]=hutspot
 # Audio player: Sailplay opens it as the music app of the car screen
 Categories=AudioVideo;Audio;Player;
-# Sailplay (car screen): "Browse" button of the Music card
+# Sailplay (car screen): "Browse" and "Queue" buttons of the Music card
 X-Sailplay-ApiVersion=1
 X-Sailplay-Service=org.solboki.Hutspot
 X-Sailplay-ObjectPath=/org/sailplay/v1/App
 X-Sailplay-Presentation=template
-X-Sailplay-Capabilities=content;
+X-Sailplay-Capabilities=content;queue;
 X-Sailplay-BackgroundService=org.solboki.hutspot
 
 [X-Sailjail]

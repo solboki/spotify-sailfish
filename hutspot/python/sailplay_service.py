@@ -25,6 +25,10 @@ Where the data comes from:
 With a Sailplay that does not know the presentation hints, the same pages are
 shown as plain lists.
 
+The same queue is also served to the "Queue" button of the car music view
+(actions queue.read and queue.play, capability "queue"), for a Sailplay that
+knows this capability.
+
 The service is started on demand by D-Bus and stops after ten idle seconds.
 The SDK is provided by Sailplay (/opt/sailplay, GPL-3.0-or-later): without
 Sailplay this service does not start and Hutspot does not depend on it.
@@ -39,7 +43,7 @@ import sys
 import time
 from urllib.parse import quote
 
-sys.path.insert(0, "/opt/sailplay")
+sys.path.insert(0, os.environ.get("HUTSPOT_SAILPLAY_PATH", "/opt/sailplay"))
 
 import dbus  # noqa: E402
 import dbus.mainloop.glib  # noqa: E402
@@ -501,6 +505,81 @@ def main():
                             message="" if rows else TEXT["queue_empty"],
                             message_kind="none" if rows else "info", version=shown["version"])
 
+    # --- play queue for the "Queue" button of the car music view ---------------
+
+    def queue_entries():
+        """[(steps, entry)]: the track being played, then what follows.
+
+        steps is the number of "next" that lead to the entry.
+        """
+        queue = queue_cache["queue"] or {}
+        entries = []
+        current = queue.get("currently_playing")
+        if isinstance(current, dict) and current.get("uri"):
+            entries.append((0, current))
+        steps = 0
+        for entry in queue.get("queue") or []:
+            steps += 1
+            if isinstance(entry, dict) and entry.get("uri"):
+                entries.append((steps, entry))
+        return entries
+
+    def queue_read(parameters, invocation):
+        def answer():
+            if queue_cache["queue"] is None:
+                invocation.fail("Failed", "the play queue could not be read")
+                return
+            entries = queue_entries()
+            items = []
+            for steps, entry in entries:
+                artists = _names(entry.get("artists"))
+                if not artists and isinstance(entry.get("show"), dict):
+                    artists = str(entry["show"].get("name", ""))
+                items.append(dbus.Dictionary({"id": str(entry["uri"])[:256],
+                                              "title": str(entry.get("name") or entry["uri"])[:1024],
+                                              "subtitle": artists[:1024]}, signature="sv"))
+            playing = 0 if entries and entries[0][0] == 0 else -1
+            invocation.complete({"queue": dbus.Dictionary(
+                {"items": dbus.Array(items, signature="a{sv}"), "index": dbus.Int32(playing)},
+                signature="sv")})
+        fetch_queue(answer)
+
+    def queue_play(parameters, invocation):
+        """Play a row of the queue: skip what comes before it."""
+        try:
+            index = int(parameters.get("index", -1))
+        except (TypeError, ValueError):
+            index = -1
+        identity = str(parameters.get("id", ""))
+
+        def answer():
+            entries = queue_entries()
+            if not 0 <= index < len(entries) or str(entries[index][1]["uri"])[:256] != identity:
+                invocation.fail("StaleRevision", "the play queue has changed")
+                return
+            steps = entries[index][0]
+            if steps == 0:
+                invocation.complete({})
+                return
+
+            # Answer as soon as Spotify accepted the first skip: the car
+            # does not wait for a long row of them.
+            def skip(left):
+                def skipped(status, data):
+                    if left == steps:
+                        if ok(status):
+                            invocation.complete({})
+                        else:
+                            invocation.fail("Failed", "Spotify refused to skip (%d)" % status)
+                    if ok(status) and left > 1:
+                        GLib.timeout_add(350, lambda: (skip(left - 1), False)[1])
+                    else:
+                        changed_soon()
+                remote.call("POST", "/me/player/next", skipped)
+
+            skip(steps)
+        fetch_queue(answer)
+
     # --- Content1 queries ---------------------------------------------------------
 
     def browse(parameters, invocation):
@@ -684,13 +763,17 @@ def main():
         if not shown["check"]:
             shown["check"] = GLib.timeout_add(800, check)
 
-    backend = ContentBackend(SERVICE, APPLICATION_ID,
-                             {"content.browse": browse, "content.search": browse,
-                              "content.select": select, "queue.add": queue_add,
-                              "queue.jump": queue_jump,
-                              "player.shuffle": option("/me/player/shuffle", ("true", "false")),
-                              "player.repeat": option("/me/player/repeat", ("off", "context", "track"))},
-                             {"content": root_page()}, on_lifecycle=lifecycle)
+    actions = {"content.browse": browse, "content.search": browse,
+               "content.select": select, "queue.add": queue_add,
+               "queue.jump": queue_jump, "queue.read": queue_read, "queue.play": queue_play,
+               "player.shuffle": option("/me/player/shuffle", ("true", "false")),
+               "player.repeat": option("/me/player/repeat", ("off", "context", "track"))}
+    try:  # "Queue" button of the car music view
+        backend = ContentBackend(SERVICE, APPLICATION_ID, actions, {"content": root_page()},
+                                 on_lifecycle=lifecycle, capabilities=("queue",))
+    except TypeError:  # a Sailplay that does not know the "queue" capability
+        backend = ContentBackend(SERVICE, APPLICATION_ID, actions, {"content": root_page()},
+                                 on_lifecycle=lifecycle)
     remote = Remote(backend.bus)
     if HINTS:
         backend.bus.add_signal_receiver(check_soon, signal_name="PropertiesChanged",

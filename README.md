@@ -56,7 +56,7 @@ devel-su pkcon install mpris-qt5-qml-plugin
 Then install the latest version of the fork:
 
 ```
-tar xzf releases/hutspot-fork-0.15.0.tar.gz && cd hutspot-fork-0.15.0
+tar xzf releases/hutspot-fork-0.16.0.tar.gz && cd hutspot-fork-0.16.0
 devel-su sh install-hutspot-fork.sh
 ```
 
@@ -211,6 +211,7 @@ The service can also be exercised without a car and without a Spotify account: a
 | 0.13.0 | Account session robust to network changes: a network failure during token renewal no longer erases the session (only an explicit refusal from Spotify does); background renewal with silent retries; a request refused for an expired token waits for the new token and is sent again; no more "Network connection lost. Quit?" dialog or login page opening by itself; network error banners limited to one per minute; "Manage network connection" setting removed |
 | 0.14.0 | Car "Browse" page (Sailplay presentation hints): tabs Albums, Playlists, Podcasts, Audiobooks, Recent; cards with cover; tracks of an album or playlist, a tap adds to the queue; right panel with the play queue, Shuffle and Repeat. Tracks and queue are requested from Hutspot over D-Bus (closed list of requests); the service sees no token. Compiled part unchanged (0.13.0). Falls back to plain lists with the official Sailplay |
 | 0.15.0 | Car screen (Sailplay 0.1.1-158 and later): the mode button of the player sets normal playback, repeat track, repeat list and shuffle (MPRIS `LoopStatus` and `Shuffle`); timed lyrics, asked to lrclib.net when the setting "Lyrics on the car screen" is on (off by default) |
+| 0.16.0 | Car screen: the Spotify play queue is served to the "Queue" button of the Sailplay player (capability `queue`, actions `queue.read` and `queue.play`); needs a Sailplay that knows this capability, no effect with the others |
 
 The archive `hutspot-rpm-0.7.0.tar.gz` contains an RPM build file, unused: installation by script was preferred.
 
